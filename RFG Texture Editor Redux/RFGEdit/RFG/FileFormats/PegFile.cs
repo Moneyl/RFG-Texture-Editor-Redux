@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using RFG.FileFormats.Helpers;
 
 // Full peg file def is here: https://github.com/Moneyl/RFGR-Modding-Tools/blob/master/File%20formats/File%20definitions/cpeg_pc/cpeg_pc.ksy
@@ -38,9 +39,25 @@ namespace RFGEdit.RFG.FileFormats
         public PegFrame ReadFrame(Stream stream)
         {
             var Frame = new PegFrame();
-            byte[] array = new byte[48];
-            stream.Read(array, 0, 48);
-            return (PegFrame)array.BytesToStructure(typeof(PegFrame));
+            Frame.Data = stream.ReadU32();
+            Frame.Width = stream.ReadU16();
+            Frame.Height = stream.ReadU16();
+            Frame.Format = stream.ReadU16();
+            Frame.SourceWidth = stream.ReadU16();
+            Frame.AnimTilesWidth = stream.ReadU16();
+            Frame.AnimTilesHeight = stream.ReadU16();
+            Frame.NumFrames = stream.ReadU16();
+            Frame.Flags = stream.ReadU16();
+            Frame.Filename = stream.ReadU32();
+            Frame.SourceHeight = stream.ReadU16();
+            Frame.Fps = stream.ReadU8();
+            Frame.MipLevels = stream.ReadU8();
+            Frame.Size = stream.ReadU32();
+            Frame.Next = stream.ReadU32();
+            Frame.Previous = stream.ReadU32();
+            Frame.Cache1 = stream.ReadU32();
+            Frame.Cache2 = stream.ReadU32();
+            return Frame;
         }
 
         // Token: 0x0600005C RID: 92 RVA: 0x00002F58 File Offset: 0x00001158
@@ -88,13 +105,13 @@ namespace RFGEdit.RFG.FileFormats
 				pegEntry.Frames.Add(pegFrame);
 				pegEntry.FrameBitmaps.Add(this.FrameToBitmap(pegFrame, pegEntry));
 				num3++;
-				if (pegFrame.Frames == 0)
+				if (pegFrame.NumFrames == 0)
 				{
-					throw new Exception("frame count is 0");
+					throw new Exception("Frame count is 0");
 				}
-				if (pegFrame.Frames > 1)
+				if (pegFrame.NumFrames > 1)
 				{
-					for (int k = 1; k < (int)pegFrame.Frames; k++)
+					for (int k = 1; k < pegFrame.NumFrames; k++)
 					{
 						PegFrame pegFrame2 = this.ReadFrame(header);
 						pegEntry.Frames.Add(pegFrame2);
@@ -116,23 +133,25 @@ namespace RFGEdit.RFG.FileFormats
 			stream.WriteU32(offset);
 			stream.WriteU16(frame.Width);
 			stream.WriteU16(frame.Height);
-			stream.WriteU32(frame.Format);
-			stream.WriteU16(frame.Unknown0C);
-			stream.WriteU16(frame.Unknown0E);
-			stream.WriteU16(frame.Frames);
-			stream.WriteByte(frame.Unknown12);
-			stream.WriteByte(frame.Unknown13);
-			stream.WriteU32(frame.Pointer);
-			stream.WriteU16(frame.Unknown18);
-			stream.WriteU16(frame.Unknown1A);
-			stream.WriteU32(size);
-			stream.WriteU32(frame.Unknown20);
-			stream.WriteU32(frame.Unknown24);
-			stream.WriteU32(frame.Unknown28);
-			stream.WriteU32(frame.Unknown2C);
-		}
+			stream.WriteU16(frame.Format);
+            stream.WriteU16(frame.SourceWidth);
+            stream.WriteU16(frame.AnimTilesWidth);
+            stream.WriteU16(frame.AnimTilesHeight);
+            stream.WriteU16(frame.NumFrames);
+            stream.WriteU16(frame.Flags);
+            stream.WriteU32(frame.Filename);
+            stream.WriteU16(frame.SourceHeight);
+            stream.WriteU8(frame.Fps);
+            stream.WriteU8(frame.MipLevels);
+            stream.WriteU32(frame.Size);
+            stream.WriteU32(frame.Next); //Should probably init these to zero so junk doesn't get output here. (if that's even a thing)
+            stream.WriteU32(frame.Previous);
+            stream.WriteU32(frame.Cache1);
+            stream.WriteU32(frame.Cache2);
+        }
 
 		// Token: 0x0600005E RID: 94 RVA: 0x00003208 File Offset: 0x00001408
+        //Todo: Fix this so it follows the correct formatting.
 		public void Write(string headerFile, string dataFile)
 		{
 			Stream stream = File.Open(headerFile, FileMode.Create, FileAccess.Write);
