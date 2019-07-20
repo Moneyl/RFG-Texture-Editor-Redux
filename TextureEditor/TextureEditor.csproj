@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6D26F189-2C85-4004-8E4A-6FD1242B8667}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>TextureEditor</RootNamespace>
+    <AssemblyName>TextureEditor</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>TextureEditor.ico</ApplicationIcon>
+    <StartupObject>PEGEditor.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PEGEditor\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PEGEditor\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PEGEditor\Program.cs" />
+    <Compile Include="PEGEditor\Properties\Resources.cs" />
+    <Compile Include="PEGEditor\Properties\Settings.Designer.cs">
+      <DependentUpon>Settings.settings</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="PEGEditor\Warning.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PEGEditor\Warning.Designer.cs">
+      <DependentUpon>Warning.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RFGEdit\RFG\FileFormats\PegEntry.cs" />
+    <Compile Include="RFGEdit\RFG\FileFormats\PegFile.cs" />
+    <Compile Include="RFGEdit\RFG\FileFormats\PegFormat.cs" />
+    <Compile Include="RFGEdit\RFG\FileFormats\PegFrame.cs" />
+    <Compile Include="RFGEdit\RFG\FileFormats\Squish.cs" />
+    <Compile Include="RFG\FileFormats\Helpers\BrokenCRC32.cs" />
+    <Compile Include="RFG\FileFormats\Helpers\ByteHelpers.cs" />
+    <Compile Include="RFG\FileFormats\Helpers\CRC32.cs" />
+    <Compile Include="RFG\FileFormats\Helpers\NumberHelpers.cs" />
+    <Compile Include="RFG\FileFormats\Helpers\StreamHelpers.cs" />
+    <Compile Include="RFG\FileFormats\Helpers\StringHelpers.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PEGEditor\MainForm.resources" />
+    <EmbeddedResource Include="PEGEditor\Properties\Resources.resources" />
+    <EmbeddedResource Include="PEGEditor\Warning.resources" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.manifest" />
+    <None Include="PEGEditor\Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
