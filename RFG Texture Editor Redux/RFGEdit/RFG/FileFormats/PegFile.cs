@@ -38,26 +38,28 @@ namespace RFGEdit.RFG.FileFormats
         // Token: 0x0600005B RID: 91 RVA: 0x00002F20 File Offset: 0x00001120
         public PegFrame ReadFrame(Stream stream)
         {
-            var Frame = new PegFrame();
-            Frame.Data = stream.ReadU32();
-            Frame.Width = stream.ReadU16();
-            Frame.Height = stream.ReadU16();
-            Frame.Format = stream.ReadU16();
-            Frame.SourceWidth = stream.ReadU16();
-            Frame.AnimTilesWidth = stream.ReadU16();
-            Frame.AnimTilesHeight = stream.ReadU16();
-            Frame.NumFrames = stream.ReadU16();
-            Frame.Flags = stream.ReadU16();
-            Frame.Filename = stream.ReadU32();
-            Frame.SourceHeight = stream.ReadU16();
-            Frame.Fps = stream.ReadU8();
-            Frame.MipLevels = stream.ReadU8();
-            Frame.Size = stream.ReadU32();
-            Frame.Next = stream.ReadU32();
-            Frame.Previous = stream.ReadU32();
-            Frame.Cache1 = stream.ReadU32();
-            Frame.Cache2 = stream.ReadU32();
-            return Frame;
+            var frame = new PegFrame
+            {
+                Data = stream.ReadU32(),
+                Width = stream.ReadU16(),
+                Height = stream.ReadU16(),
+                Format = stream.ReadU16(),
+                SourceWidth = stream.ReadU16(),
+                AnimTilesWidth = stream.ReadU16(),
+                AnimTilesHeight = stream.ReadU16(),
+                NumFrames = stream.ReadU16(),
+                Flags = stream.ReadU16(),
+                Filename = stream.ReadU32(),
+                SourceHeight = stream.ReadU16(),
+                Fps = stream.ReadU8(),
+                MipLevels = stream.ReadU8(),
+                Size = stream.ReadU32(),
+                Next = stream.ReadU32(),
+                Previous = stream.ReadU32(),
+                Cache1 = stream.ReadU32(),
+                Cache2 = stream.ReadU32()
+            };
+            return frame;
         }
 
         // Token: 0x0600005C RID: 92 RVA: 0x00002F58 File Offset: 0x00001158
@@ -188,7 +190,7 @@ namespace RFGEdit.RFG.FileFormats
 		// Token: 0x06000060 RID: 96 RVA: 0x00003394 File Offset: 0x00001594
 		private Bitmap FrameToBitmap(PegFrame frame, PegEntry entry)
 		{
-			this._data.Seek((long)((ulong)frame.Offset), SeekOrigin.Begin);
+			this._data.Seek((long)((ulong)frame.Data), SeekOrigin.Begin);
 			byte[] array = new byte[frame.Size];
 			this._data.Read(array, 0, (int)frame.Size);
 			entry.data = array;

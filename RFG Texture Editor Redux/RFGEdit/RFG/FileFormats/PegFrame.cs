@@ -13,10 +13,10 @@ namespace RFGEdit.RFG.FileFormats
         public ushort AnimTilesWidth; //anim_tiles_width
         public ushort AnimTilesHeight; //anim_tiles_height
         public ushort NumFrames; //previously "Frames"
-        public ushort Flags;
+        public ushort Flags; //previous "Unknown12", offset 18
         public uint Filename; //Filename hash?
-        public ushort SourceHeight;
-        public byte Fps;
+        public ushort SourceHeight; 
+        public byte Fps; //Previously "Unknown1A", offset 26
         public byte MipLevels;
         public uint Size; //FrameSize
         public uint Next; //Runtime value

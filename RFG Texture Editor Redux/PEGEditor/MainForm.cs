@@ -146,8 +146,9 @@ namespace PEGEditor
 			{
 				Bitmap bitmap = new Bitmap(this.fdImport.FileName);
 				PegFrame value = this.currentEntry.Frames[0];
-				value.Format = 407u;
-				value.Unknown1A = 257;
+				value.Format = 407;
+				value.Fps = 1; //Previously set a ushort here to 257, which is equivalent to setting these two to 1
+                value.MipLevels = 1;
 				this.currentEntry.FrameBitmaps[0] = bitmap;
 				this.currentEntry.Frames[0] = value;
 				this.currentEntry.data = PegFile.MakeByteArrayFromBitmap(bitmap);
