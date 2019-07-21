@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Windows.Forms;
 using RFG.FileFormats.Helpers;
 
 // Full peg file def is here: https://github.com/Moneyl/RFGR-Modding-Tools/blob/master/File%20formats/File%20definitions/cpeg_pc/cpeg_pc.ksy
@@ -156,32 +157,108 @@ namespace RFGEdit.RFG.FileFormats
         //Todo: Fix this so it follows the correct formatting.
 		public void Write(string headerFile, string dataFile)
 		{
-			Stream stream = File.Open(headerFile, FileMode.Create, FileAccess.Write);
-			Stream stream2 = File.Open(dataFile, FileMode.Create, FileAccess.Write);
-			stream.WriteU32(1447773511u);
-			stream.WriteU32(10u);
-			stream.WriteU32(0u);
-			stream.WriteU32(0u);
-			stream.WriteU16((ushort)this.Entries.Count);
-			stream.WriteU16(0);
-			stream.WriteU16((ushort)this.Entries.Count);
-			stream.WriteU16(0);
-			foreach (PegEntry pegEntry in this.Entries)
+			Stream stream = File.Open(headerFile, FileMode.Create, FileAccess.Write); //writes to cpu file (cpeg_pc or cvbm_pc)
+			Stream stream2 = File.Open(dataFile, FileMode.Create, FileAccess.Write); //writes to gpu file (gpeg_pc or gvbm_pc)
+
+            //Write header data to cpu file
+			stream.WriteU32(1447773511); //magic sig
+			stream.WriteU16(10); //version
+            stream.WriteU16(0); //platform
+			stream.WriteU32(0); //header size, initially write 0, will come back and write real value afterwards
+			stream.WriteU32(0); //gpu data size, same method as previous ^^
+			stream.WriteU16((ushort)Entries.Count); //number_of_bitmaps
+			stream.WriteU16(0); //flags
+			stream.WriteU16((ushort)Entries.Count); //total_entries (same as number_of_bitmaps as far as I can tell)
+			stream.WriteU16(16); //Align value, was zero in original code, pretty sure it needs to be 16 based on all files I've viewed
+
+            //Write peg entries to cpu and gpu files
+			foreach (PegEntry pegEntry in Entries)
 			{
-				this.WriteFrame(stream, pegEntry.Frames[0], (uint)stream2.Length, (uint)(pegEntry.FrameBitmaps[0].Width * pegEntry.FrameBitmaps[0].Height * 4));
-				stream2.Write(pegEntry.data, 0, pegEntry.data.Length);
+				WriteFrame(stream, pegEntry.Frames[0], (uint)stream2.Length, (uint)(pegEntry.FrameBitmaps[0].Width * pegEntry.FrameBitmaps[0].Height * 4));
+
+                //BGRA -> ARGB //No idea how it ends up being BGRA here, need to go through the code and figure out this nonsense.
+
+                //ConvertBgraToArgb(pegEntry.data);
+                //BGRA -> RGBA
+                SwitchRedAndBlueChannels(pegEntry.data);
+
+                stream2.Write(pegEntry.data, 0, pegEntry.data.Length);
 			}
-			foreach (PegEntry pegEntry2 in this.Entries)
+
+            //Write peg names to cpu file
+			foreach (PegEntry pegEntry2 in Entries)
 			{
 				stream.WriteASCIIZ(pegEntry2.Name);
 			}
+            
+            //Seek to header_size and write it's value
 			stream.Seek(8L, SeekOrigin.Begin);
 			stream.WriteU32((uint)stream.Length);
-			stream.Close();
-		}
+            stream.WriteU32((uint)stream2.Length); //write value of gpu_data_size
 
-		// Token: 0x0600005F RID: 95 RVA: 0x00003374 File Offset: 0x00001574
-		private void WriteFrameToStream(Bitmap frame, Stream stream)
+
+			stream.Close();
+            stream2.Close();
+        }
+
+        void SwitchRedAndBlueChannels(byte[] data)
+        {
+            var alphaChannel = new byte[data.Length / 4];
+            var redChannel = new byte[data.Length / 4];
+            var greenChannel = new byte[data.Length / 4];
+            var blueChannel = new byte[data.Length / 4];
+
+            int pixelIndex = 0;
+            for (int i = 0; i < data.Length - 3; i += 4)
+            {
+                blueChannel[pixelIndex] = data[i];
+                greenChannel[pixelIndex] = data[i + 1];
+                redChannel[pixelIndex] = data[i + 2];
+                alphaChannel[pixelIndex] = data[i + 3];
+                pixelIndex++;
+            }
+
+            pixelIndex = 0;
+            for (int i = 0; i < data.Length - 3; i += 4)
+            {
+                data[i] = redChannel[pixelIndex];
+                data[i + 1] = greenChannel[pixelIndex];
+                data[i + 2] = blueChannel[pixelIndex];
+                data[i + 3] = alphaChannel[pixelIndex];
+                pixelIndex++;
+            }
+        }
+
+        void ConvertBgraToArgb(byte[] data)
+        {
+            var alphaChannel = new byte[data.Length / 4];
+            var redChannel = new byte[data.Length / 4];
+            var greenChannel = new byte[data.Length / 4];
+            var blueChannel = new byte[data.Length / 4];
+
+            int pixelIndex = 0;
+            for (int i = 0; i < data.Length - 4; i += 4)
+            {
+                blueChannel[pixelIndex] = data[i];
+                greenChannel[pixelIndex] = data[i + 1];
+                redChannel[pixelIndex] = data[i + 2];
+                alphaChannel[pixelIndex] = data[i + 3];
+                pixelIndex++;
+            }
+
+            pixelIndex = 0;
+            for (int i = 0; i < data.Length - 3; i += 4)
+            {
+                data[i] = alphaChannel[pixelIndex];
+                data[i + 1] = redChannel[pixelIndex];
+                data[i + 2] = greenChannel[pixelIndex];
+                data[i + 3] = blueChannel[pixelIndex];
+                pixelIndex++;
+            }
+        }
+
+        // Token: 0x0600005F RID: 95 RVA: 0x00003374 File Offset: 0x00001574
+        private void WriteFrameToStream(Bitmap frame, Stream stream)
 		{
 			byte[] array = PegFile.MakeByteArrayFromBitmap(frame);
 			stream.Write(array, 0, array.Length);
@@ -286,12 +363,55 @@ namespace RFGEdit.RFG.FileFormats
 			Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 			BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
 			byte[] array = new byte[bitmap.Width * bitmap.Height * 4];
+
 			for (int i = 0; i < array.Length; i++)
 			{
 				array[i] = Marshal.ReadByte(bitmapData.Scan0, i);
 			}
 			bitmap.UnlockBits(bitmapData);
-			return array;
+
+            //MessageBox.Show($"0: {array[0]}, 1: {array[1]}, 2: {array[2]}, 3: {array[3]}\n4: {array[4]}, 5: {array[5]}, 6: {array[6]}, 7: {array[7]}", "Byte info");
+
+            ////Unsure what all that up there does. For now just gonna do a quick hack and flip the red and blue channels.
+            ////Assumes R8G8B8A8 data. Might need to move this code around or make it optional. Want to switch it to A8R8G8B8 data
+            ////RGBA -> ARGB
+
+            //var alphaChannel = new byte[array.Length / 4];
+            //var redChannel = new byte[array.Length / 4];
+            //var greenChannel = new byte[array.Length / 4];
+            //var blueChannel = new byte[array.Length / 4];
+
+            //MessageBox.Show("1", "1");
+            ////Read each channel into individual arrays
+
+
+            ////Try ARGB to ABGR //Really did RGBA to RABG
+            ////Try RGBA to ARGB
+
+            //int PixelIndex = 0;
+            //for (int i = 0; i < array.Length - 4; i += 4)
+            //{
+            //    redChannel[PixelIndex] = array[i];
+            //    greenChannel[PixelIndex] = array[i + 1];
+            //    blueChannel[PixelIndex] = array[i + 2];
+            //    alphaChannel[PixelIndex] = array[i + 3];
+            //    PixelIndex++;
+            //}
+
+
+            ////Write the channels back into the return array. Flip red and blue channels.
+            //PixelIndex = 0;
+            //for (int i = 0; i < array.Length - 3; i += 4)
+            //{
+            //    array[i] = alphaChannel[PixelIndex];
+            //    array[i + 1] = redChannel[PixelIndex];
+            //    array[i + 2] = greenChannel[PixelIndex];
+            //    array[i + 3] = blueChannel[PixelIndex];
+            //    PixelIndex++;
+            //}
+            //MessageBox.Show("3", "3");
+
+            return array;
 		}
     }
 }

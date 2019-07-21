@@ -164,9 +164,10 @@ namespace PEGEditor
 		// Token: 0x06000071 RID: 113 RVA: 0x000048F4 File Offset: 0x00002AF4
 		private void miSave_Click(object sender, EventArgs e)
 		{
-			this.unsavedChanges = false;
-			this.currentPeg.Write(Path.ChangeExtension(this.cpeg.FullName, "c" + this.extension), Path.ChangeExtension(this.gpeg.FullName, "g" + this.extension));
-			MessageBox.Show("Changes saved to:\r\n\t" + Path.ChangeExtension(this.cpeg.Name, "c" + this.extension) + "\r\n\t" + Path.ChangeExtension(this.cpeg.Name, "g" + this.extension), "Save Complete");
+			unsavedChanges = false;
+			currentPeg.Write(Path.ChangeExtension(cpeg.FullName, "c" + extension), Path.ChangeExtension(gpeg.FullName, "g" + extension));
+			MessageBox.Show("Changes saved to:\r\n\t" + Path.ChangeExtension(cpeg.Name, "c" + extension) + "\r\n\t" + Path.ChangeExtension(cpeg.Name, "g" + extension),
+                "Save Complete");
 		}
 
 		// Token: 0x06000072 RID: 114 RVA: 0x000049B0 File Offset: 0x00002BB0
