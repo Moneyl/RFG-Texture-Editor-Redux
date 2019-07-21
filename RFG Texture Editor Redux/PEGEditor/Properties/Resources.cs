@@ -27,12 +27,12 @@ namespace PEGEditor.Properties
 		{
 			get
 			{
-				if (object.ReferenceEquals(Resources.resourceMan, null))
+				if (ReferenceEquals(resourceMan, null))
 				{
 					ResourceManager resourceManager = new ResourceManager("PEGEditor.Properties.Resources", typeof(Resources).Assembly);
-					Resources.resourceMan = resourceManager;
+					resourceMan = resourceManager;
 				}
-				return Resources.resourceMan;
+				return resourceMan;
 			}
 		}
 
@@ -44,11 +44,11 @@ namespace PEGEditor.Properties
 		{
 			get
 			{
-				return Resources.resourceCulture;
+				return resourceCulture;
 			}
 			set
 			{
-				Resources.resourceCulture = value;
+				resourceCulture = value;
 			}
 		}
 
@@ -58,7 +58,7 @@ namespace PEGEditor.Properties
 		{
 			get
 			{
-				object @object = Resources.ResourceManager.GetObject("Checker", Resources.resourceCulture);
+				object @object = ResourceManager.GetObject("Checker", resourceCulture);
 				return (Bitmap)@object;
 			}
 		}
@@ -69,7 +69,7 @@ namespace PEGEditor.Properties
 		{
 			get
 			{
-				object @object = Resources.ResourceManager.GetObject("Checker1", Resources.resourceCulture);
+				object @object = ResourceManager.GetObject("Checker1", resourceCulture);
 				return (Bitmap)@object;
 			}
 		}
@@ -80,7 +80,7 @@ namespace PEGEditor.Properties
 		{
 			get
 			{
-				object @object = Resources.ResourceManager.GetObject("Checker2", Resources.resourceCulture);
+				object @object = ResourceManager.GetObject("Checker2", resourceCulture);
 				return (Bitmap)@object;
 			}
 		}

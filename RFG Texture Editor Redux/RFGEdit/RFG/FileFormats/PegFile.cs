@@ -106,7 +106,7 @@ namespace RFGEdit.RFG.FileFormats
 				pegEntry.Name = array[j];
 				PegFrame pegFrame = ReadFrame(header);
 				pegEntry.Frames.Add(pegFrame);
-				pegEntry.FrameBitmaps.Add(this.FrameToBitmap(pegFrame, pegEntry));
+				pegEntry.FrameBitmaps.Add(FrameToBitmap(pegFrame, pegEntry));
 				num3++;
 				if (pegFrame.NumFrames == 0)
 				{
@@ -116,13 +116,13 @@ namespace RFGEdit.RFG.FileFormats
 				{
 					for (int k = 1; k < pegFrame.NumFrames; k++)
 					{
-						PegFrame pegFrame2 = this.ReadFrame(header);
+						PegFrame pegFrame2 = ReadFrame(header);
 						pegEntry.Frames.Add(pegFrame2);
-						pegEntry.FrameBitmaps.Add(this.FrameToBitmap(pegFrame2, pegEntry));
+						pegEntry.FrameBitmaps.Add(FrameToBitmap(pegFrame2, pegEntry));
 						num3++;
 					}
 				}
-				this.Entries.Add(pegEntry);
+				Entries.Add(pegEntry);
 			}
 			if (num3 != num2)
 			{
@@ -180,7 +180,11 @@ namespace RFGEdit.RFG.FileFormats
 
                 //ConvertBgraToArgb(pegEntry.data);
                 //BGRA -> RGBA
-                SwitchRedAndBlueChannels(pegEntry.data);
+
+                if (pegEntry.Edited) //Quick hack to avoid corrupting unchanged DXT compressed texture data. Really need to refactor the entire project and make it cleaner and more understandable.
+                {
+                    SwitchRedAndBlueChannels(pegEntry.data);
+                }
 
                 stream2.Write(pegEntry.data, 0, pegEntry.data.Length);
 			}
@@ -196,8 +200,7 @@ namespace RFGEdit.RFG.FileFormats
 			stream.WriteU32((uint)stream.Length);
             stream.WriteU32((uint)stream2.Length); //write value of gpu_data_size
 
-
-			stream.Close();
+            stream.Close();
             stream2.Close();
         }
 
@@ -260,16 +263,16 @@ namespace RFGEdit.RFG.FileFormats
         // Token: 0x0600005F RID: 95 RVA: 0x00003374 File Offset: 0x00001574
         private void WriteFrameToStream(Bitmap frame, Stream stream)
 		{
-			byte[] array = PegFile.MakeByteArrayFromBitmap(frame);
+			byte[] array = MakeByteArrayFromBitmap(frame);
 			stream.Write(array, 0, array.Length);
 		}
 
 		// Token: 0x06000060 RID: 96 RVA: 0x00003394 File Offset: 0x00001594
 		private Bitmap FrameToBitmap(PegFrame frame, PegEntry entry)
 		{
-			this._data.Seek((long)((ulong)frame.Data), SeekOrigin.Begin);
+			_data.Seek((long)((ulong)frame.Data), SeekOrigin.Begin);
 			byte[] array = new byte[frame.Size];
-			this._data.Read(array, 0, (int)frame.Size);
+			_data.Read(array, 0, (int)frame.Size);
 			entry.data = array;
 			PegFormat format = (PegFormat)frame.Format;
 			Bitmap result;
@@ -290,11 +293,11 @@ namespace RFGEdit.RFG.FileFormats
 				}
 				byte[] array2 = new byte[(int)(frame.Width * frame.Height * 4)];
 				Squish.Decompress(array2, (uint)frame.Width, (uint)frame.Height, array, (int)flags);
-				result = PegFile.MakeBitmapFromDXT((uint)frame.Width, (uint)frame.Height, array2, true);
+				result = MakeBitmapFromDXT((uint)frame.Width, (uint)frame.Height, array2, true);
 			}
 			else if (format == PegFormat.R5G6B5)
 			{
-				result = PegFile.MakeBitmapFromR5G6B5((uint)frame.Width, (uint)frame.Height, array);
+				result = MakeBitmapFromR5G6B5((uint)frame.Width, (uint)frame.Height, array);
 			}
 			else
 			{
@@ -302,7 +305,7 @@ namespace RFGEdit.RFG.FileFormats
 				{
 					throw new Exception("unhandled format " + frame.Format.ToString());
 				}
-				result = PegFile.MakeBitmapFromA8R8G8B8((uint)frame.Width, (uint)frame.Height, array);
+				result = MakeBitmapFromA8R8G8B8((uint)frame.Width, (uint)frame.Height, array);
 			}
 			return result;
 		}
@@ -339,8 +342,8 @@ namespace RFGEdit.RFG.FileFormats
 		public static Bitmap Test()
 		{
 			Bitmap bitmap = new Bitmap("C:\\Users\\Luke\\Desktop\\GPEg\\map_mini_overlay.png");
-			byte[] buffer = PegFile.MakeByteArrayFromBitmap(bitmap);
-			return PegFile.MakeBitmapFromA8R8G8B8((uint)bitmap.Width, (uint)bitmap.Height, buffer);
+			byte[] buffer = MakeByteArrayFromBitmap(bitmap);
+			return MakeBitmapFromA8R8G8B8((uint)bitmap.Width, (uint)bitmap.Height, buffer);
 		}
 
 		// Token: 0x06000064 RID: 100 RVA: 0x000035E0 File Offset: 0x000017E0

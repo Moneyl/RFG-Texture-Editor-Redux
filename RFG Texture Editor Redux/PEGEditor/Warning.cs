@@ -11,13 +11,13 @@ namespace PEGEditor
 		// Token: 0x06000033 RID: 51 RVA: 0x000029D2 File Offset: 0x00000BD2
 		public Warning()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		// Token: 0x06000034 RID: 52 RVA: 0x000029E0 File Offset: 0x00000BE0
 		private void btnClose_Click(object sender, EventArgs e)
 		{
-			base.Close();
+			Close();
 		}
 	}
 }

@@ -10,13 +10,16 @@ namespace RFGEdit.RFG.FileFormats
 		[DllImport("squish.dll", EntryPoint = "DecompressImage")]
 		public static extern void Decompress([MarshalAs(UnmanagedType.LPArray)] byte[] rgba, uint width, uint height, [MarshalAs(UnmanagedType.LPArray)] byte[] blocks, int flags);
 
+        [DllImport("squish.dll", EntryPoint = "CompressImage")]
+        public static extern void Compress([MarshalAs(UnmanagedType.LPArray)] byte[] rgba, uint width, uint height, [MarshalAs(UnmanagedType.LPArray)] byte[] blocks, int flags); //additional arg: float* metric = 0
+
 		// Token: 0x02000008 RID: 8
 		public enum Flags
 		{
 			// Token: 0x04000007 RID: 7
 			DXT1 = 1,
 			// Token: 0x04000008 RID: 8
-			DXT3,
+			DXT3 = 2,
 			// Token: 0x04000009 RID: 9
 			DXT5 = 4,
 			// Token: 0x0400000A RID: 10

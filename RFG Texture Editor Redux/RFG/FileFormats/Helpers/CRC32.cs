@@ -25,11 +25,11 @@ namespace RFG.FileFormats.Helpers
 		{
 			get
 			{
-				return CRC32._AutoCache;
+				return _AutoCache;
 			}
 			set
 			{
-				CRC32._AutoCache = value;
+				_AutoCache = value;
 			}
 		}
 
@@ -46,7 +46,7 @@ namespace RFG.FileFormats.Helpers
 		// Token: 0x0600003D RID: 61 RVA: 0x00002A41 File Offset: 0x00000C41
 		public static void ClearCache()
 		{
-			CRC32.CachedCRC32Tables.Clear();
+			CachedCRC32Tables.Clear();
 		}
 
 		// Token: 0x0600003E RID: 62 RVA: 0x00002A50 File Offset: 0x00000C50
@@ -73,36 +73,36 @@ namespace RFG.FileFormats.Helpers
 		}
 
 		// Token: 0x0600003F RID: 63 RVA: 0x00002A9E File Offset: 0x00000C9E
-		public CRC32() : this(CRC32.DefaultPolynomial)
+		public CRC32() : this(DefaultPolynomial)
 		{
 		}
 
 		// Token: 0x06000040 RID: 64 RVA: 0x00002AAB File Offset: 0x00000CAB
-		public CRC32(uint polynomial) : this(polynomial, CRC32.AutoCache)
+		public CRC32(uint polynomial) : this(polynomial, AutoCache)
 		{
 		}
 
 		// Token: 0x06000041 RID: 65 RVA: 0x00002ABC File Offset: 0x00000CBC
 		public CRC32(uint polymonial, bool cacheTable)
 		{
-			this.AllOnes = CRC32.DefaultAllOnes;
-			this.HashSizeValue = 32;
-			this.CRC32Table = (uint[])CRC32.CachedCRC32Tables[polymonial];
-			if (this.CRC32Table == null)
+			AllOnes = DefaultAllOnes;
+			HashSizeValue = 32;
+			CRC32Table = (uint[])CachedCRC32Tables[polymonial];
+			if (CRC32Table == null)
 			{
-				this.CRC32Table = CRC32.BuildCRC32Table(polymonial);
+				CRC32Table = BuildCRC32Table(polymonial);
 				if (cacheTable)
 				{
-					CRC32.CachedCRC32Tables.Add(polymonial, this.CRC32Table);
+					CachedCRC32Tables.Add(polymonial, CRC32Table);
 				}
 			}
-			this.Initialize();
+			Initialize();
 		}
 
 		// Token: 0x06000042 RID: 66 RVA: 0x00002B30 File Offset: 0x00000D30
 		public override void Initialize()
 		{
-			this.CRC = this.AllOnes;
+			CRC = AllOnes;
 		}
 
 		// Token: 0x06000043 RID: 67 RVA: 0x00002B40 File Offset: 0x00000D40
@@ -110,16 +110,16 @@ namespace RFG.FileFormats.Helpers
 		{
 			for (int i = offset; i < count; i++)
 			{
-				ulong num = (ulong)((this.CRC & 255u) ^ (uint)buffer[i]);
-				this.CRC >>= 8;
-				this.CRC ^= this.CRC32Table[(int)(checked((IntPtr)num))];
+				ulong num = (ulong)((CRC & 255u) ^ (uint)buffer[i]);
+				CRC >>= 8;
+				CRC ^= CRC32Table[(int)(checked((IntPtr)num))];
 			}
 		}
 
 		// Token: 0x06000044 RID: 68 RVA: 0x00002B8F File Offset: 0x00000D8F
 		protected override byte[] HashFinal()
 		{
-			return BitConverter.GetBytes(this.CRC ^ this.AllOnes);
+			return BitConverter.GetBytes(CRC ^ AllOnes);
 		}
 
 		// Token: 0x06000045 RID: 69 RVA: 0x00002BA4 File Offset: 0x00000DA4
@@ -129,22 +129,22 @@ namespace RFG.FileFormats.Helpers
 			int cbSize;
 			while ((cbSize = inputStream.Read(array, 0, 4096)) > 0)
 			{
-				this.HashCore(array, 0, cbSize);
+				HashCore(array, 0, cbSize);
 			}
-			return this.HashFinal();
+			return HashFinal();
 		}
 
 		// Token: 0x06000046 RID: 70 RVA: 0x00002BDF File Offset: 0x00000DDF
 		public new byte[] ComputeHash(byte[] buffer)
 		{
-			return this.ComputeHash(buffer, 0, buffer.Length);
+			return ComputeHash(buffer, 0, buffer.Length);
 		}
 
 		// Token: 0x06000047 RID: 71 RVA: 0x00002BEC File Offset: 0x00000DEC
 		public new byte[] ComputeHash(byte[] buffer, int offset, int count)
 		{
-			this.HashCore(buffer, offset, count);
-			return this.HashFinal();
+			HashCore(buffer, offset, count);
+			return HashFinal();
 		}
 
 		// Token: 0x04000010 RID: 16

@@ -14,7 +14,7 @@ namespace PEGEditor
 		// Token: 0x06000069 RID: 105 RVA: 0x00004392 File Offset: 0x00002592
 		public MainForm()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		// Token: 0x0600006A RID: 106 RVA: 0x000043AB File Offset: 0x000025AB
@@ -25,93 +25,93 @@ namespace PEGEditor
 		// Token: 0x0600006B RID: 107 RVA: 0x000043AD File Offset: 0x000025AD
 		private void miExit_Click(object sender, EventArgs e)
 		{
-			base.Close();
+			Close();
 		}
 
 		// Token: 0x0600006C RID: 108 RVA: 0x000043B8 File Offset: 0x000025B8
 		private void miOpen_Click(object sender, EventArgs e)
 		{
-			this.fdOpen.ShowDialog(this);
-			if (!File.Exists(this.fdOpen.FileName))
+			fdOpen.ShowDialog(this);
+			if (!File.Exists(fdOpen.FileName))
 			{
 				return;
 			}
-			this.cpeg = new FileInfo(this.fdOpen.FileName);
-			if (Path.GetExtension(this.cpeg.Name).ToLower() == ".cpeg_pc")
+			cpeg = new FileInfo(fdOpen.FileName);
+			if (Path.GetExtension(cpeg.Name).ToLower() == ".cpeg_pc")
 			{
-				this.extension = "peg_pc";
+				extension = "peg_pc";
 			}
 			else
 			{
-				this.extension = "vbm_pc";
+				extension = "vbm_pc";
 			}
-			if (!this.cpeg.Exists)
+			if (!cpeg.Exists)
 			{
 				return;
 			}
-			this.gpeg = new FileInfo(Path.ChangeExtension(this.fdOpen.FileName, "g" + this.extension));
-			if (!this.gpeg.Exists)
+			gpeg = new FileInfo(Path.ChangeExtension(fdOpen.FileName, "g" + extension));
+			if (!gpeg.Exists)
 			{
 				MessageBox.Show(string.Concat(new string[]
 				{
 					"Error: ",
-					this.gpeg.Name,
+					gpeg.Name,
 					" doesn't exist. You must have both the c",
-					this.extension,
+					extension,
 					" and the g",
-					this.extension,
+					extension,
 					" files in the same place."
 				}), "Error", MessageBoxButtons.OK);
 				return;
 			}
-			this.currentPeg = new PegFile();
-			Stream stream = File.OpenRead(Path.ChangeExtension(this.cpeg.FullName, "c" + this.extension));
-			Stream stream2 = File.OpenRead(Path.ChangeExtension(this.gpeg.FullName, "g" + this.extension));
-			this.currentPeg.Read(stream, stream2);
+			currentPeg = new PegFile();
+			Stream stream = File.OpenRead(Path.ChangeExtension(cpeg.FullName, "c" + extension));
+			Stream stream2 = File.OpenRead(Path.ChangeExtension(gpeg.FullName, "g" + extension));
+			currentPeg.Read(stream, stream2);
 			stream.Close();
 			stream2.Close();
-			if (this.currentPeg.Entries.Count == 0)
+			if (currentPeg.Entries.Count == 0)
 			{
 				MessageBox.Show(string.Concat(new string[]
 				{
 					"Invalid ",
-					this.extension,
+					extension,
 					": The supplied ",
-					this.extension,
+					extension,
 					" file has no images."
 				}), "Error");
 				return;
 			}
-			this.lblNumTextures.Text = this.currentPeg.Entries.Count.ToString() + " Textures";
-			this.lblFile.Text = Path.ChangeExtension(this.cpeg.Name, "").TrimEnd(new char[]
+			lblNumTextures.Text = currentPeg.Entries.Count.ToString() + " Textures";
+			lblFile.Text = Path.ChangeExtension(cpeg.Name, "").TrimEnd(new char[]
 			{
 				'.'
 			});
-			this.tvMain.Nodes.Clear();
-			foreach (PegEntry pegEntry in this.currentPeg.Entries)
+			tvMain.Nodes.Clear();
+			foreach (PegEntry pegEntry in currentPeg.Entries)
 			{
 				TreeNode treeNode = new TreeNode(pegEntry.Name);
 				treeNode.Tag = pegEntry;
-				this.tvMain.Nodes.Add(treeNode);
+				tvMain.Nodes.Add(treeNode);
 			}
-			this.tvMain.SelectedNode = this.tvMain.Nodes[0];
-			this.unsavedChanges = false;
-			this.miSave.Enabled = true;
-			this.miExtractAll.Enabled = true;
+			tvMain.SelectedNode = tvMain.Nodes[0];
+			unsavedChanges = false;
+			miSave.Enabled = true;
+			miExtractAll.Enabled = true;
 		}
 
 		// Token: 0x0600006D RID: 109 RVA: 0x000046C4 File Offset: 0x000028C4
 		private void tvMain_AfterSelect(object sender, TreeViewEventArgs e)
 		{
-			this.miExtract.Enabled = true;
-			this.miImport.Enabled = true;
-			this.cmiExtract.Enabled = true;
-			this.cmiImport.Enabled = true;
-			PegEntry pegEntry = this.tvMain.SelectedNode.Tag as PegEntry;
-			this.currentBmp = pegEntry.FrameBitmaps[0];
-			this.currentFilename = Path.ChangeExtension(pegEntry.Name, "png");
-			this.pbMain.Image = this.currentBmp;
-			this.currentEntry = pegEntry;
+			miExtract.Enabled = true;
+			miImport.Enabled = true;
+			cmiExtract.Enabled = true;
+			cmiImport.Enabled = true;
+			PegEntry pegEntry = tvMain.SelectedNode.Tag as PegEntry;
+			currentBmp = pegEntry.FrameBitmaps[0];
+			currentFilename = Path.ChangeExtension(pegEntry.Name, "png");
+			pbMain.Image = currentBmp;
+			currentEntry = pegEntry;
 		}
 
 		// Token: 0x0600006E RID: 110 RVA: 0x00004757 File Offset: 0x00002957
@@ -123,41 +123,43 @@ namespace PEGEditor
 		// Token: 0x0600006F RID: 111 RVA: 0x0000476C File Offset: 0x0000296C
 		private void miExtract_Click(object sender, EventArgs e)
 		{
-			this.fdExtract.FileName = this.currentFilename;
-			this.fdExtract.ShowDialog(this);
-			if (this.fdExtract.FileName == this.currentFilename || this.fdExtract.FileName == "")
+			fdExtract.FileName = currentFilename;
+			fdExtract.ShowDialog(this);
+			if (fdExtract.FileName == currentFilename || fdExtract.FileName == "")
 			{
 				return;
 			}
-			this.currentBmp.Save(this.fdExtract.FileName);
+			currentBmp.Save(fdExtract.FileName);
 		}
 
 		// Token: 0x06000070 RID: 112 RVA: 0x000047E0 File Offset: 0x000029E0
 		private void miImport_Click(object sender, EventArgs e)
 		{
-			this.fdImport.FileName = this.currentFilename;
-			this.fdImport.ShowDialog(this);
-			if (this.fdImport.FileName == this.currentFilename || this.fdImport.FileName == "")
+			fdImport.FileName = currentFilename;
+			fdImport.ShowDialog(this);
+			if (fdImport.FileName == currentFilename || fdImport.FileName == "")
 			{
 				return;
 			}
-			this.unsavedChanges = true;
+			unsavedChanges = true;
 			try
 			{
-				Bitmap bitmap = new Bitmap(this.fdImport.FileName);
-				PegFrame value = this.currentEntry.Frames[0];
-				value.Format = 407;
+				Bitmap bitmap = new Bitmap(fdImport.FileName);
+				PegFrame value = currentEntry.Frames[0];
+				value.Format = (ushort)PegFormat.A8R8G8B8;
 				value.Fps = 1; //Previously set a ushort here to 257, which is equivalent to setting these two to 1
                 value.MipLevels = 1;
-				this.currentEntry.FrameBitmaps[0] = bitmap;
-				this.currentEntry.Frames[0] = value;
-				this.currentEntry.data = PegFile.MakeByteArrayFromBitmap(bitmap);
-				this.tvMain_AfterSelect(null, null);
+                value.Size = (uint)(bitmap.Width * bitmap.Height * 4);
+				currentEntry.FrameBitmaps[0] = bitmap;
+				currentEntry.Frames[0] = value;
+				currentEntry.data = PegFile.MakeByteArrayFromBitmap(bitmap);
+                currentEntry.Edited = true;
+				tvMain_AfterSelect(null, null);
 			}
 			catch (Exception ex)
 			{
 				ex.GetHashCode();
-				MessageBox.Show("Error:\r\n\tCould not load bitmap from:\r\n\t" + this.fdImport.FileName);
+				MessageBox.Show("Error:\r\n\tCould not load bitmap from:\r\n\t" + fdImport.FileName);
 			}
 		}
 
@@ -173,24 +175,24 @@ namespace PEGEditor
 		// Token: 0x06000072 RID: 114 RVA: 0x000049B0 File Offset: 0x00002BB0
 		private void miExtractAll_Click(object sender, EventArgs e)
 		{
-			this.fdExtractAll.SelectedPath = "";
-			this.fdExtractAll.ShowDialog();
-			if (this.fdExtractAll.SelectedPath == "")
+			fdExtractAll.SelectedPath = "";
+			fdExtractAll.ShowDialog();
+			if (fdExtractAll.SelectedPath == "")
 			{
 				return;
 			}
-			foreach (PegEntry pegEntry in this.currentPeg.Entries)
+			foreach (PegEntry pegEntry in currentPeg.Entries)
 			{
 				Bitmap bitmap = pegEntry.FrameBitmaps[0];
-				bitmap.Save(this.fdExtractAll.SelectedPath + "\\" + Path.ChangeExtension(pegEntry.Name, "png"));
+				bitmap.Save(fdExtractAll.SelectedPath + "\\" + Path.ChangeExtension(pegEntry.Name, "png"));
 			}
-			MessageBox.Show("Textures extracted to:\r\n\t" + this.fdExtractAll.SelectedPath, "Extract Complete");
+			MessageBox.Show("Textures extracted to:\r\n\t" + fdExtractAll.SelectedPath, "Extract Complete");
 		}
 
 		// Token: 0x06000073 RID: 115 RVA: 0x00004A90 File Offset: 0x00002C90
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			if (!this.unsavedChanges)
+			if (!unsavedChanges)
 			{
 				return;
 			}
@@ -202,7 +204,7 @@ namespace PEGEditor
 			}
 			if (dialogResult == DialogResult.Yes)
 			{
-				this.miSave_Click(null, null);
+				miSave_Click(null, null);
 			}
 		}
 

@@ -18,5 +18,7 @@ namespace RFGEdit.RFG.FileFormats
 
 		// Token: 0x04000025 RID: 37
 		public byte[] data;
-	}
+
+        public bool Edited = false;
+    }
 }

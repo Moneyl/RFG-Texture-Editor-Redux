@@ -8,7 +8,7 @@ namespace RFG.FileFormats.Helpers
 		// Token: 0x06000048 RID: 72 RVA: 0x00002BFD File Offset: 0x00000DFD
 		public override void Initialize()
 		{
-			this.AllOnes = 0u;
+			AllOnes = 0u;
 			base.Initialize();
 		}
 	}
