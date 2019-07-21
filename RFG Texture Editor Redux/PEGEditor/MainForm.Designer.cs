@@ -212,7 +212,7 @@
 			base.MainMenuStrip = this.menuMain;
 			base.Name = "MainForm";
 			base.StartPosition = global::System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "RF:G Texture Editor by 0luke0";
+			this.Text = "RFG Texture Editor Redux";
 			base.Load += new global::System.EventHandler(this.Form1_Load);
 			base.FormClosing += new global::System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.menuMain.ResumeLayout(false);

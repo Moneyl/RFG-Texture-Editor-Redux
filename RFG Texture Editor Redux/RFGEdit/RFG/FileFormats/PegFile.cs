@@ -174,17 +174,28 @@ namespace RFGEdit.RFG.FileFormats
             //Write peg entries to cpu and gpu files
 			foreach (PegEntry pegEntry in Entries)
 			{
-				WriteFrame(stream, pegEntry.Frames[0], (uint)stream2.Length, (uint)(pegEntry.FrameBitmaps[0].Width * pegEntry.FrameBitmaps[0].Height * 4));
+                //Quick hack to avoid corrupting unchanged DXT compressed texture data and to compress imported data to DXT5.
+                //Really need to refactor the entire project and make it cleaner and more understandable.
+                if (pegEntry.Edited) 
+                {
+                    SwitchRedAndBlueChannels(pegEntry.data); //BGRA -> RGBA (no idea how it's BGRA here, need to refactor the shit out of this code).
+
+                    // Convert RGBA data to DXT5 (compressed) to avoid hitting the games texture file size limits.
+                    pegEntry.data = Squish.Compress(pegEntry.data, pegEntry.Frames[0].Width, pegEntry.Frames[0].Height, (int)Squish.Flags.DXT5);
+
+                    var entry = pegEntry.Frames[0];
+                    entry.Format = (ushort)PegFormat.DXT5;
+                    pegEntry.Frames[0] = entry;
+                }
+
+                WriteFrame(stream, pegEntry.Frames[0], (uint)stream2.Length, (uint)(pegEntry.FrameBitmaps[0].Width * pegEntry.FrameBitmaps[0].Height * 4));
 
                 //BGRA -> ARGB //No idea how it ends up being BGRA here, need to go through the code and figure out this nonsense.
 
                 //ConvertBgraToArgb(pegEntry.data);
                 //BGRA -> RGBA
 
-                if (pegEntry.Edited) //Quick hack to avoid corrupting unchanged DXT compressed texture data. Really need to refactor the entire project and make it cleaner and more understandable.
-                {
-                    SwitchRedAndBlueChannels(pegEntry.data);
-                }
+
 
                 stream2.Write(pegEntry.data, 0, pegEntry.data.Length);
 			}

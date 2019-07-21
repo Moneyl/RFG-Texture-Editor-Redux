@@ -57,7 +57,7 @@
 			base.MinimizeBox = false;
 			base.Name = "Warning";
 			base.StartPosition = global::System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "RF:G Texture Editor by 0luke0";
+			this.Text = "RFG Texture Editor Redux";
 			base.TopMost = true;
 			base.ResumeLayout(false);
 			base.PerformLayout();
