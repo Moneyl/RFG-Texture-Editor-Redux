@@ -184,7 +184,7 @@ namespace RFGEdit.RFG.FileFormats
                     //Todo: Print array to text file at different steps and make sure everything is working properly. Also try disabling red/blue switch
                     //Todo: Issue is probably from the code that adds another color channel. Tried disabling red/blue switch and compression, no change detected.
 
-                    MessageBox.Show($"Final pixel: R: {pegEntry.data[length - 4]}, G: {pegEntry.data[length - 3]}, B: {pegEntry.data[length - 2]}, A: {pegEntry.data[length - 1]}", "Final pixel values");
+                    //MessageBox.Show($"Final pixel: R: {pegEntry.data[length - 4]}, G: {pegEntry.data[length - 3]}, B: {pegEntry.data[length - 2]}, A: {pegEntry.data[length - 1]}", "Final pixel values");
 
                     // Convert RGBA data to DXT5 (compressed) to avoid hitting the games texture file size limits.
                     pegEntry.data = Squish.Compress(pegEntry.data, pegEntry.Frames[0].Width, pegEntry.Frames[0].Height, (int)Squish.Flags.DXT5);
