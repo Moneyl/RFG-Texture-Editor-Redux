@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
 using PEGEditor.Properties;
@@ -116,9 +117,11 @@ namespace PEGEditor
 
 		// Token: 0x0600006E RID: 110 RVA: 0x00004757 File Offset: 0x00002957
 		private void miAbout_Click(object sender, EventArgs e)
-		{
-			MessageBox.Show("RF:G Texture Editor\r\nCreated by 0luke0\r\nThanks to:\r\n\tGibbed\r\n\t  http://gib.me/\r\n\tThe RF:G Modding commmunity\r\n\t  community.redfaction.com", "Red Faction: Guerrilla Textrue Editor by 0luke0");
-		}
+        {
+            MessageBox.Show(
+                "RFG Texture Editor Redux\n\nA patch of the original texture editor by 0luke0 made from decompiled source code.\n\ngithub repo: https://github.com/Moneyl/RFG-Texture-Editor-Redux\n\nThanks to Gibbed for his work on reversing the peg format and writing the original extraction code.",
+                "RFG Texture Editor Redux");
+        }
 
 		// Token: 0x0600006F RID: 111 RVA: 0x0000476C File Offset: 0x0000296C
 		private void miExtract_Click(object sender, EventArgs e)
@@ -145,21 +148,35 @@ namespace PEGEditor
 			try
 			{
 				Bitmap bitmap = new Bitmap(fdImport.FileName);
+                //if (bitmap.PixelFormat == PixelFormat.Format24bppRgb) //really stored as bgr
+                //{
+                //    //Is rgb image, add alpha channel 
+
+                //}
+                //else if (bitmap.PixelFormat != PixelFormat.Format32bppArgb) //really stored as bgra
+                //{
+                //    //Doesn't equal rgb or argb so complain about unknown or unsupported format
+                //}
+                //Todo: Update size in case texture size is different
 				PegFrame value = currentEntry.Frames[0];
+                value.Width = (ushort)bitmap.Width;
+                value.Height = (ushort)bitmap.Height;
+                value.SourceWidth = 36352;// (or -29184 if it was an int)... Seems this needs to be this value unless you're using an animated texture like vfx_container.cpeg_pc//(ushort)bitmap.Width;
+                value.SourceHeight = (ushort)bitmap.Height;
 				value.Format = (ushort)PegFormat.A8R8G8B8;
 				value.Fps = 1; //Previously set a ushort here to 257, which is equivalent to setting these two to 1
                 value.MipLevels = 1;
-                value.Size = (uint)(bitmap.Width * bitmap.Height * 4);
-				currentEntry.FrameBitmaps[0] = bitmap;
-				currentEntry.Frames[0] = value;
-				currentEntry.data = PegFile.MakeByteArrayFromBitmap(bitmap);
+                value.Size = (uint)(bitmap.Width * bitmap.Height * 4); //Todo: This might be inaccurate now that all imports are being converted to DXT5
+				currentEntry.FrameBitmaps[0] = bitmap; //format either ARGB or RGB
+				currentEntry.Frames[0] = value; //Starts at last pixel of image and flips array because I dunno why
+				currentEntry.data = PegFile.MakeByteArrayFromBitmap(bitmap); 
                 currentEntry.Edited = true;
 				tvMain_AfterSelect(null, null);
 			}
 			catch (Exception ex)
 			{
 				ex.GetHashCode();
-				MessageBox.Show("Error:\r\n\tCould not load bitmap from:\r\n\t" + fdImport.FileName);
+				MessageBox.Show("Error: Could not load bitmap from " + fdImport.FileName + ", message: " + ex.Message);
 			}
 		}
 
@@ -231,5 +248,24 @@ namespace PEGEditor
 
 		// Token: 0x04000062 RID: 98
 		private string extension = "peg_pc";
-	}
+
+        private Image CheckerboardBackgroundReference;
+
+        private void ToolStripMenuItem3_Click(object sender, EventArgs e)
+        {
+            bool Checked = ((ToolStripMenuItem)sender).Checked;
+
+            if (Checked) //Use solid background
+            {
+                //Hacky way to keep track of the checkerboard background image. 
+                //Works for now but will need to be changed when the codebase is cleaned up.
+                CheckerboardBackgroundReference = pbMain.BackgroundImage; 
+                pbMain.BackgroundImage = null;
+            }
+            else //use checkerboard background
+            {
+                pbMain.BackgroundImage = CheckerboardBackgroundReference;
+            }
+        }
+    }
 }

@@ -10,8 +10,8 @@ namespace RFGEdit.RFG.FileFormats
         public ushort Height;
         public ushort Format; //bitmap_format
         public ushort SourceWidth;
-        public ushort AnimTilesWidth; //anim_tiles_width
-        public ushort AnimTilesHeight; //anim_tiles_height
+        public ushort AnimTilesWidth; //In the case of animated textures, the number of textures going horizontally.
+        public ushort AnimTilesHeight; //In the case of animated textures, the number of textures going vertically.
         public ushort NumFrames; //previously "Frames"
         public ushort Flags; //previous "Unknown12", offset 18
         public uint Filename; //Filename hash?

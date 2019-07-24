@@ -180,11 +180,18 @@ namespace RFGEdit.RFG.FileFormats
                 {
                     SwitchRedAndBlueChannels(pegEntry.data); //BGRA -> RGBA (no idea how it's BGRA here, need to refactor the shit out of this code).
 
+                    int length = pegEntry.data.Length;
+                    //Todo: Print array to text file at different steps and make sure everything is working properly. Also try disabling red/blue switch
+                    //Todo: Issue is probably from the code that adds another color channel. Tried disabling red/blue switch and compression, no change detected.
+
+                    MessageBox.Show($"Final pixel: R: {pegEntry.data[length - 4]}, G: {pegEntry.data[length - 3]}, B: {pegEntry.data[length - 2]}, A: {pegEntry.data[length - 1]}", "Final pixel values");
+
                     // Convert RGBA data to DXT5 (compressed) to avoid hitting the games texture file size limits.
                     pegEntry.data = Squish.Compress(pegEntry.data, pegEntry.Frames[0].Width, pegEntry.Frames[0].Height, (int)Squish.Flags.DXT5);
 
                     var entry = pegEntry.Frames[0];
                     entry.Format = (ushort)PegFormat.DXT5;
+                    entry.Size = (uint)pegEntry.data.Length;
                     pegEntry.Frames[0] = entry;
                 }
 
@@ -251,7 +258,7 @@ namespace RFGEdit.RFG.FileFormats
             var blueChannel = new byte[data.Length / 4];
 
             int pixelIndex = 0;
-            for (int i = 0; i < data.Length - 4; i += 4)
+            for (int i = 0; i < data.Length - 3; i += 4) //Todo: Make sure data.Length - 3 is correct
             {
                 blueChannel[pixelIndex] = data[i];
                 greenChannel[pixelIndex] = data[i + 1];
@@ -371,61 +378,93 @@ namespace RFGEdit.RFG.FileFormats
 		// Token: 0x06000065 RID: 101 RVA: 0x00003638 File Offset: 0x00001838
 		public static byte[] MakeByteArrayFromBitmap(Bitmap bitmap)
 		{
-			Bitmap image = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
-			Graphics graphics = Graphics.FromImage(image);
-			graphics.DrawImageUnscaled(bitmap, 0, 0);
-			Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-			BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
-			byte[] array = new byte[bitmap.Width * bitmap.Height * 4];
+            if (bitmap.PixelFormat == PixelFormat.Format24bppRgb) //really stored as bgr
+            {
+                //Currently not going to support this format due to issues solving a bug with it. Will add support for it and hopefully other formats later on.
+                throw new Exception("Error! Unsupported bitmap format 24bppRgb detected! This format is currently not supported. Please be sure to save your edited textures as pngs with a bit depth of 32 and ensure that they have an alpha channel.");
+                //Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                //BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
+                //byte[] array = new byte[bitmap.Width * bitmap.Height * 3]; //* 3 for rgb
 
-			for (int i = 0; i < array.Length; i++)
-			{
-				array[i] = Marshal.ReadByte(bitmapData.Scan0, i);
-			}
-			bitmap.UnlockBits(bitmapData);
+                //for (int i = 0; i < array.Length; i++)
+                //{
+                //    array[i] = Marshal.ReadByte(bitmapData.Scan0, i);
+                //}
+                //bitmap.UnlockBits(bitmapData);
 
-            //MessageBox.Show($"0: {array[0]}, 1: {array[1]}, 2: {array[2]}, 3: {array[3]}\n4: {array[4]}, 5: {array[5]}, 6: {array[6]}, 7: {array[7]}", "Byte info");
+                ////Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                ////BitmapData bmpData = bitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bitmap.PixelFormat);
 
-            ////Unsure what all that up there does. For now just gonna do a quick hack and flip the red and blue channels.
-            ////Assumes R8G8B8A8 data. Might need to move this code around or make it optional. Want to switch it to A8R8G8B8 data
-            ////RGBA -> ARGB
+                ////IntPtr ptr = bmpData.Scan0;
 
-            //var alphaChannel = new byte[array.Length / 4];
-            //var redChannel = new byte[array.Length / 4];
-            //var greenChannel = new byte[array.Length / 4];
-            //var blueChannel = new byte[array.Length / 4];
+                ////int bytes = Math.Abs(bmpData.Stride) * bitmap.Height;
+                ////byte[] array = new byte[bytes];
 
-            //MessageBox.Show("1", "1");
-            ////Read each channel into individual arrays
+                ////Marshal.Copy(ptr, array, 0, bytes);
 
+                ////Is rgb image, add alpha channel 
+                //var redChannel = new byte[array.Length / 3];
+                //var greenChannel = new byte[array.Length / 3];
+                //var blueChannel = new byte[array.Length / 3];
 
-            ////Try ARGB to ABGR //Really did RGBA to RABG
-            ////Try RGBA to ARGB
+                //int pixelIndex = 0;
+                //for (int i = 0; i < array.Length - 2; i += 3) //+= 3
+                //{
+                //    blueChannel[pixelIndex] = array[i];
+                //    greenChannel[pixelIndex] = array[i + 1];
+                //    redChannel[pixelIndex] = array[i + 2];
+                //    pixelIndex++;
+                //}
 
-            //int PixelIndex = 0;
-            //for (int i = 0; i < array.Length - 4; i += 4)
-            //{
-            //    redChannel[PixelIndex] = array[i];
-            //    greenChannel[PixelIndex] = array[i + 1];
-            //    blueChannel[PixelIndex] = array[i + 2];
-            //    alphaChannel[PixelIndex] = array[i + 3];
-            //    PixelIndex++;
-            //}
+                //using (var File = new StreamWriter(@"C:\Users\moneyl\Desktop\RFGR Texture editor test\rgb-pre-alpha-add-color-channels.txt"))
+                //{
+                //    for (int i = 0; i < blueChannel.Length; i++)
+                //    {
+                //        File.WriteLine("\n\nPixel Index: {0}\n\tBlue: {1}, Green: {2}, Red: {3}", i, blueChannel[i], greenChannel[i], redChannel[i]);
+                //    }
+                //}
 
+                //pixelIndex = 0;
+                //array = new byte[bitmap.Width * bitmap.Height * 4];
+                //for (int i = 0; i < array.Length - 3; i += 4)
+                //{
+                //    array[i] = blueChannel[pixelIndex];
+                //    array[i + 1] = greenChannel[pixelIndex];
+                //    array[i + 2] = redChannel[pixelIndex];
+                //    array[i + 3] = 255; //Full opacity for alpha channel
+                //    pixelIndex++;
+                //}
 
-            ////Write the channels back into the return array. Flip red and blue channels.
-            //PixelIndex = 0;
-            //for (int i = 0; i < array.Length - 3; i += 4)
-            //{
-            //    array[i] = alphaChannel[PixelIndex];
-            //    array[i + 1] = redChannel[PixelIndex];
-            //    array[i + 2] = greenChannel[PixelIndex];
-            //    array[i + 3] = blueChannel[PixelIndex];
-            //    PixelIndex++;
-            //}
-            //MessageBox.Show("3", "3");
+                //pixelIndex = 0;
+                //using (var File = new StreamWriter(@"C:\Users\moneyl\Desktop\RFGR Texture editor test\rgba-post-alpha-add-color-channels.txt"))
+                //{
+                //    for (int i = 0; i < array.Length - 3; i += 4)
+                //    {
+                //        File.WriteLine("\n\nPixel Index: {0}\n\tV0: {1}, V1: {2}, V2: {3}, V3: {4}", pixelIndex, array[i], array[i + 1], array[i + 2], array[i + 3]);
+                //        pixelIndex++;
+                //    }
+                //}
 
-            return array;
-		}
+                //return array;
+            }
+            else if (bitmap.PixelFormat == PixelFormat.Format32bppArgb) //really stored as bgra
+            {
+                Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
+                byte[] array = new byte[bitmap.Width * bitmap.Height * 4]; //* 3 for rgb
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = Marshal.ReadByte(bitmapData.Scan0, i);
+                }
+                bitmap.UnlockBits(bitmapData);
+                return array;
+            }
+            else
+            {
+                //Doesn't equal rgb or argb so complain about unknown or unsupported format
+                throw new Exception("Unknown or unsupported pixel format detected when importing texture! PixelFormat: " + bitmap.PixelFormat.ToString());
+            }
+        }
     }
 }
