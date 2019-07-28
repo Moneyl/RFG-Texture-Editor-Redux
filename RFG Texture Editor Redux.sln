@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
+VisualStudioVersion = 16.0.29001.49
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RFG Texture Editor Redux", "RFG Texture Editor Redux\RFG Texture Editor Redux.csproj", "{6D26F189-2C85-4004-8E4A-6FD1242B8667}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RFG Texture Editor Redux", "RFG Texture Editor Redux\RFG Texture Editor Redux.csproj", "{CF534CC0-767B-49E2-9622-C9AD3C9CBB07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6D26F189-2C85-4004-8E4A-6FD1242B8667}.Debug|x86.ActiveCfg = Debug|x86
-		{6D26F189-2C85-4004-8E4A-6FD1242B8667}.Debug|x86.Build.0 = Debug|x86
-		{6D26F189-2C85-4004-8E4A-6FD1242B8667}.Release|x86.ActiveCfg = Release|x86
-		{6D26F189-2C85-4004-8E4A-6FD1242B8667}.Release|x86.Build.0 = Release|x86
+		{CF534CC0-767B-49E2-9622-C9AD3C9CBB07}.Debug|x86.ActiveCfg = Debug|x86
+		{CF534CC0-767B-49E2-9622-C9AD3C9CBB07}.Debug|x86.Build.0 = Debug|x86
+		{CF534CC0-767B-49E2-9622-C9AD3C9CBB07}.Release|x86.ActiveCfg = Release|x86
+		{CF534CC0-767B-49E2-9622-C9AD3C9CBB07}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {36E97FF7-A192-4209-8401-B3E17F4DBE1B}
+		SolutionGuid = {943182DA-5341-4E28-98D4-839A0278777F}
 	EndGlobalSection
 EndGlobal
