@@ -1,3 +1,2 @@
 # RFG Texture Editor Redux
-An updated version of the texture editor for Red Faction Guerrilla originally made by 0luke0. The original version no longer works and so this version was created. It was made by dumping/decompiling source code from the application with [dnSpy](https://github.com/0xd4d/dnSpy), and modifying that.
-
+A texture editor for Red Faction Guerrilla, made with C# and WPF. This was originally based off decompiled code from the now defunct texture editor made by 0luke0 ([here](https://www.factionfiles.com/ff.php?action=file&id=2768)). The editor has since been completely rewritten, now using WPF instead of winforms. The main goal of rewriting it was to allow easier future maintanence and bugfixing since the original decompiled code had a lot of junk code that made it more difficult to maintain.
