@@ -37,9 +37,8 @@ using System.Threading.Tasks;
 //    unsigned int cache[2];
 //};
 
-namespace TextureEditor
+namespace TextureEditor.Peg
 {
-    //Todo: Move this into a "formats" namespace
     //Todo: Make use of fancy pants c# features like properties
     public class PegFile
     {
@@ -79,68 +78,66 @@ namespace TextureEditor
 
             cpuFileName = Path.GetFileName(cpuFilePath);
             gpuFileName = Path.GetFileName(gpuFilePath);
-
-            using (var cpuFileStream = new FileStream(cpuFilePath, FileMode.Open))
-            {
-                using (var gpuFileStream = new FileStream(gpuFilePath, FileMode.Open))
-                {
-                    Read(cpuFileStream, gpuFileStream);
-                }
-            }
         }
 
         //Todo: Consider adding warnings for unusual, problematic, or unsupported values. Maybe change some existing exceptions to warnings.
-        public void Read(Stream cpuFileStream, Stream gpuFileStream)
+        public void Read()
         {
-            Entries.Clear();
-            var header = new BinaryReader(cpuFileStream);
-            var data = new BinaryReader(gpuFileStream);
-
-            Signature = header.ReadUInt32();
-            if (Signature != 1447773511) //Equals GEKV as a string
+            using (var cpuFileStream = new FileStream(_cpuFilePath, FileMode.Open))
             {
-                throw new Exception("Header signature must be GEKV. Invalid peg file. Make sure that your packfile extractor didn't incorrectly extract the peg file you're trying to open.");
-            }
-            Version = header.ReadUInt16();
-            if (Version != 10)
-            {
-                throw new Exception($"Unsupported peg format version detected! Only peg version 10 is supported. Version {Version} was detected");
-            }
+                using (var gpuFileStream = new FileStream(_gpuFilePath, FileMode.Open))
+                {
+                    Entries.Clear();
+                    var header = new BinaryReader(cpuFileStream);
+                    var data = new BinaryReader(gpuFileStream);
 
-            Platform = header.ReadUInt16(); //Todo: Add exception or warning for unknown or unsupported platform.
-            DirectoryBlockSize = header.ReadUInt32();
-            if (header.BaseStream.Length != DirectoryBlockSize)
-            {
-                throw new Exception($"Error, the size of the header file (cpeg_pc or cvbm_pc) does not match the size value stored in the header! Actual size: {header.BaseStream.Length} bytes, stored size: {DirectoryBlockSize} bytes.");
-            }
+                    Signature = header.ReadUInt32();
+                    if (Signature != 1447773511) //Equals GEKV as a string
+                    {
+                        throw new Exception("Header signature must be GEKV. Invalid peg file. Make sure that your packfile extractor didn't incorrectly extract the peg file you're trying to open.");
+                    }
+                    Version = header.ReadUInt16();
+                    if (Version != 10)
+                    {
+                        throw new Exception($"Unsupported peg format version detected! Only peg version 10 is supported. Version {Version} was detected");
+                    }
 
-            DataBlockSize = header.ReadUInt32();
-            NumberOfBitmaps = header.ReadUInt16();
-            Flags = header.ReadUInt16();
-            TotalEntries = header.ReadUInt16();
-            AlignValue = header.ReadUInt16();
+                    Platform = header.ReadUInt16(); //Todo: Add exception or warning for unknown or unsupported platform.
+                    DirectoryBlockSize = header.ReadUInt32();
+                    if (header.BaseStream.Length != DirectoryBlockSize)
+                    {
+                        throw new Exception($"Error, the size of the header file (cpeg_pc or cvbm_pc) does not match the size value stored in the header! Actual size: {header.BaseStream.Length} bytes, stored size: {DirectoryBlockSize} bytes.");
+                    }
 
-            //Read peg entries
-            for (int i = 0; i < NumberOfBitmaps; i++)
-            {
-                var entry = new PegEntry();
-                entry.Read(header);
-                Entries.Add(entry);
-            }
+                    DataBlockSize = header.ReadUInt32();
+                    NumberOfBitmaps = header.ReadUInt16();
+                    Flags = header.ReadUInt16();
+                    TotalEntries = header.ReadUInt16();
+                    AlignValue = header.ReadUInt16();
 
-            //Read peg entry names
-            foreach (var entry in Entries)
-            {
-                entry.Name = ReadNullTerminatedString(header);
-            }
+                    //Read peg entries
+                    for (int i = 0; i < NumberOfBitmaps; i++)
+                    {
+                        var entry = new PegEntry();
+                        entry.Read(header);
+                        Entries.Add(entry);
+                    }
 
-            
-            //Load raw texture data from gpu file, convert to bitmaps for easy handling
-            foreach (var entry in Entries)
-            {
-                entry.RawData = new byte[entry.frame_size];
-                data.Read(entry.RawData, 0, (int)entry.frame_size);
-                entry.Bitmap = EntryDataToBitmap(entry);
+                    //Read peg entry names
+                    foreach (var entry in Entries)
+                    {
+                        entry.Name = Util.ReadNullTerminatedString(header);
+                    }
+
+
+                    //Load raw texture data from gpu file, convert to bitmaps for easy handling
+                    foreach (var entry in Entries)
+                    {
+                        entry.RawData = new byte[entry.frame_size];
+                        data.Read(entry.RawData, 0, (int)entry.frame_size);
+                        entry.Bitmap = Util.EntryDataToBitmap(entry);
+                    }
+                }
             }
         }
 
@@ -167,7 +164,6 @@ namespace TextureEditor
 
         private void WriteHeader(BinaryWriter header)
         {
-            //Todo: Update these values before writing them. Some of them could have changed.
             header.Write(Signature);
             header.Write(Version);
             header.Write(Platform);
@@ -183,7 +179,6 @@ namespace TextureEditor
         {
             foreach (var entry in Entries)
             {
-                //Todo: Update the entry values before writing since some could've changed.
                 entry.Write(header);
             }
         }
@@ -233,60 +228,6 @@ namespace TextureEditor
                     entry.frame_size = (uint)entry.RawData.Length;
                 }
             }
-        }
-
-        //Todo: Move this into a helper namespace
-        string ReadNullTerminatedString(BinaryReader stream)
-        {
-            var String = new StringBuilder();
-            do
-            {
-                String.Append(stream.ReadChar()); //Since the character isn't a null byte, add it to the string
-            }
-            while (stream.PeekChar() != 0); //Read bytes until a null byte (string terminator) is reached
-
-            stream.ReadByte(); //Read past the null terminator
-            return String.ToString(); 
-        }
-
-        //Todo: Move this to a helper namespace
-        Bitmap EntryDataToBitmap(PegEntry entry)
-        {
-            if (entry.bitmap_format == PegFormat.PC_DXT1)
-            {
-                var decompressBuffer = Squish.Decompress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT1);
-                return MakeBitmapFromDXT(entry.width, entry.height, decompressBuffer, true);
-            }
-            else if (entry.bitmap_format == PegFormat.PC_DXT3)
-            {
-                var decompressBuffer = Squish.Decompress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT3);
-                return MakeBitmapFromDXT(entry.width, entry.height, decompressBuffer, true);
-            }
-            else if (entry.bitmap_format == PegFormat.PC_DXT5)
-            {
-                var decompressBuffer = Squish.Decompress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT5);
-                return MakeBitmapFromDXT(entry.width, entry.height, decompressBuffer, true);
-            }
-            else
-            {
-                throw new Exception($"Unsupported PEG data format detected! {entry.bitmap_format.ToString()} is not yet supported.");
-            }
-        }
-
-        private static Bitmap MakeBitmapFromDXT(uint width, uint height, byte[] buffer, bool keepAlpha)
-        {
-            Bitmap bitmap = new Bitmap((int)width, (int)height, PixelFormat.Format32bppArgb);
-            for (uint num = 0u; num < width * height * 4u; num += 4u)
-            {
-                byte b = buffer[(int)((UIntPtr)num)];
-                buffer[(int)((UIntPtr)num)] = buffer[(int)((UIntPtr)(num + 2u))];
-                buffer[(int)((UIntPtr)(num + 2u))] = b;
-            }
-            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-            BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.WriteOnly, bitmap.PixelFormat);
-            Marshal.Copy(buffer, 0, bitmapData.Scan0, (int)(width * height * 4u));
-            bitmap.UnlockBits(bitmapData);
-            return bitmap;
         }
     }
 }

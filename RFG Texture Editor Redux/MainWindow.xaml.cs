@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using TextureEditor.Peg;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace TextureEditor
@@ -25,27 +26,27 @@ namespace TextureEditor
     /// </summary>
     public partial class MainWindow
     {
-        private PegFile Peg;
-        public CommonOpenFileDialog FileBrowser;
-        public CommonOpenFileDialog ImportFileBrowser;
+        private PegFile _peg;
+        private CommonOpenFileDialog _fileBrowser;
+        private CommonOpenFileDialog _importFileBrowser;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            FileBrowser = new CommonOpenFileDialog();
-            FileBrowser.Filters.Add(new CommonFileDialogFilter("Peg files", "*.cpeg_pc;*.cvbm_pc"));
+            _fileBrowser = new CommonOpenFileDialog();
+            _fileBrowser.Filters.Add(new CommonFileDialogFilter("Peg files", "*.cpeg_pc;*.cvbm_pc"));
 
-            ImportFileBrowser = new CommonOpenFileDialog();
-            ImportFileBrowser.Filters.Add(new CommonFileDialogFilter("Image file", "*.png")); //Todo: Test and support more formats
+            _importFileBrowser = new CommonOpenFileDialog();
+            _importFileBrowser.Filters.Add(new CommonFileDialogFilter("Image file", "*.png")); //Todo: Test and support more formats
         }
 
         private void OpenTextureFile_OnClick(object sender, RoutedEventArgs e)
         {
-            FileBrowser.IsFolderPicker = false;
-            if (FileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
+            _fileBrowser.IsFolderPicker = false;
+            if (_fileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                string cpuFilePath = FileBrowser.FileName;
+                string cpuFilePath = _fileBrowser.FileName;
                 if (!File.Exists(cpuFilePath))
                 {
                     return;
@@ -56,12 +57,14 @@ namespace TextureEditor
                 if (cpuFileInfo.Extension == ".cpeg_pc")
                 {
                     var gpuFileInfo = new FileInfo(cpuFileInfo.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(cpuFilePath) + ".gpeg_pc");
-                    Peg = new PegFile(cpuFilePath, gpuFileInfo.FullName); //Create new PegFile instance, constructor calls PegFile.Read()
+                    _peg = new PegFile(cpuFilePath, gpuFileInfo.FullName);
+                    _peg.Read();
                 }
                 else if(cpuFileInfo.Extension == ".cvbm_pc")
                 {
                     var gpuFileInfo = new FileInfo(cpuFileInfo.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(cpuFilePath) + ".gvbm_pc");
-                    Peg = new PegFile(cpuFilePath, gpuFileInfo.FullName); //Create new PegFile instance, constructor calls PegFile.Read()
+                    _peg = new PegFile(cpuFilePath, gpuFileInfo.FullName);
+                    _peg.Read();
                 }
                 else
                 {
@@ -76,21 +79,21 @@ namespace TextureEditor
 
         private void SaveChanges_OnClick(object sender, RoutedEventArgs e)
         {
-            Peg.Write();
-            MessageBox.Show($"Saved changes to:\n{Peg.cpuFileName}, and\n{Peg.gpuFileName}");
+            _peg.Write();
+            MessageBox.Show($"Saved changes to:\n{_peg.cpuFileName}, and\n{_peg.gpuFileName}");
         }
 
         private void ImportSelectedTexture_OnClick(object sender, RoutedEventArgs e)
         {
-            if (Peg != null && Peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
+            if (_peg != null && _peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
             {
-                ImportFileBrowser.IsFolderPicker = false;
-                if (ImportFileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
+                _importFileBrowser.IsFolderPicker = false;
+                if (_importFileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    var selectedEntry = Peg.Entries[GetSelectedTextureIndex()];
-                    selectedEntry.Bitmap = new Bitmap(ImportFileBrowser.FileName);
+                    var selectedEntry = _peg.Entries[GetSelectedTextureIndex()];
+                    selectedEntry.Bitmap = new Bitmap(_importFileBrowser.FileName);
                     selectedEntry.Edited = true;
-                    selectedEntry.RawData = ConvertBitmapToByteArray(selectedEntry.Bitmap);
+                    selectedEntry.RawData = Util.ConvertBitmapToByteArray(selectedEntry.Bitmap);
 
                     uint original_width = selectedEntry.width;
 
@@ -116,27 +119,27 @@ namespace TextureEditor
 
         private void ExtractSelectedTexture_OnClick(object sender, RoutedEventArgs e)
         {
-            if (Peg != null && Peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
+            if (_peg != null && _peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
             {
-                FileBrowser.IsFolderPicker = true;
-                if (FileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
+                _fileBrowser.IsFolderPicker = true;
+                if (_fileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    var selectedEntry = Peg.Entries[GetSelectedTextureIndex()];
-                    selectedEntry.Bitmap.Save(FileBrowser.FileName + "\\" + Path.GetFileNameWithoutExtension(selectedEntry.Name) + ".png", ImageFormat.Png);
+                    var selectedEntry = _peg.Entries[GetSelectedTextureIndex()];
+                    selectedEntry.Bitmap.Save(_fileBrowser.FileName + "\\" + Path.GetFileNameWithoutExtension(selectedEntry.Name) + ".png", ImageFormat.Png);
                 }
             }
         }
 
         private void ExtractAllTextures_OnClick(object sender, RoutedEventArgs e)
         {
-            if (Peg != null && Peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
+            if (_peg != null && _peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
             {
-                FileBrowser.IsFolderPicker = true;
-                if (FileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
+                _fileBrowser.IsFolderPicker = true;
+                if (_fileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    foreach (var entry in Peg.Entries)
+                    foreach (var entry in _peg.Entries)
                     {
-                        entry.Bitmap.Save(FileBrowser.FileName + "\\" + Path.GetFileNameWithoutExtension(entry.Name) + ".png", ImageFormat.Png);
+                        entry.Bitmap.Save(_fileBrowser.FileName + "\\" + Path.GetFileNameWithoutExtension(entry.Name) + ".png", ImageFormat.Png);
                     }
                 }
             }
@@ -180,14 +183,14 @@ namespace TextureEditor
 
         private void UpdateWindowTitle()
         {
-            Title = $"RFG Texture Editor Redux | {Peg.cpuFileName}, {Peg.Entries.Count} textures";
+            Title = $"RFG Texture Editor Redux | {_peg.cpuFileName}, {_peg.Entries.Count} textures";
         }
 
         private void PopulateTreeView()
         {
             TextureTree.Items.Clear();
             
-            foreach (var entry in Peg.Entries)
+            foreach (var entry in _peg.Entries)
             {
                 TextureTree.Items.Add(new TreeViewItem()
                 {
@@ -198,11 +201,11 @@ namespace TextureEditor
 
         private void SetSelectedTexture(int index)
         {
-            if (Peg != null)
+            if (_peg != null)
             {
-                if (index < Peg.Entries.Count && index > -1)
+                if (index < _peg.Entries.Count && index > -1)
                 {
-                    TextureView.Source = BitmapToBitmapImage(Peg.Entries[index].Bitmap);
+                    TextureView.Source = Util.BitmapToBitmapImage(_peg.Entries[index].Bitmap);
                     ((TreeViewItem)TextureTree.Items[index]).IsSelected = true;
                 }
             }
@@ -216,71 +219,6 @@ namespace TextureEditor
         void UpdateCurrentTextureBitmap()
         {
             SetSelectedTexture(GetSelectedTextureIndex());
-        }
-
-        //Todo: Move to helper namespace, look into alternative conversion methods.
-        static BitmapImage BitmapToBitmapImage(Bitmap bitmap)
-        {
-            MemoryStream ms = new MemoryStream();
-            bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png); //Use here to keep transparency
-            BitmapImage image = new BitmapImage();
-            image.BeginInit();
-            ms.Seek(0, SeekOrigin.Begin);
-            image.StreamSource = ms;
-            image.EndInit();
-            return image;
-        }
-
-        static byte[] ConvertBitmapToByteArray(Bitmap bitmap)
-        {
-            if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
-            {
-                Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-                BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
-                byte[] data = new byte[bitmap.Width * bitmap.Height * 4]; //* 3 for rgb
-
-                for (int i = 0; i < data.Length; i++)
-                {
-                    data[i] = Marshal.ReadByte(bitmapData.Scan0, i);
-                }
-                bitmap.UnlockBits(bitmapData);
-
-                //At this point the data is in BGRA arrangement, need to make it RGBA for DXT purposes.
-                var redChannel = new byte[data.Length / 4];
-                var greenChannel = new byte[data.Length / 4];
-                var blueChannel = new byte[data.Length / 4];
-                var alphaChannel = new byte[data.Length / 4];
-
-                int pixelIndex = 0;
-                for (int i = 0; i < data.Length - 3; i += 4)
-                {
-                    blueChannel[pixelIndex] = data[i];
-                    greenChannel[pixelIndex] = data[i + 1];
-                    redChannel[pixelIndex] = data[i + 2];
-                    alphaChannel[pixelIndex] = data[i + 3];
-                    pixelIndex++;
-                }
-
-                pixelIndex = 0;
-                for (int i = 0; i < data.Length - 3; i += 4)
-                {
-                    data[i] = redChannel[pixelIndex];
-                    data[i + 1] = greenChannel[pixelIndex];
-                    data[i + 2] = blueChannel[pixelIndex];
-                    data[i + 3] = alphaChannel[pixelIndex];
-                    pixelIndex++;
-                }
-
-                return data;
-            }
-            //else if (bitmap.PixelFormat == PixelFormat.Format24bppRgb)
-            //{
-
-            //}
-            else
-            {
-                throw new Exception($"Texture import failed! {bitmap.PixelFormat.ToString()} is currently an unsupported import pixel format.");
-            }
         }
     }
 }

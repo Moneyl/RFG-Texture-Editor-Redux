@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
-namespace TextureEditor
+namespace TextureEditor.Peg
 {
     public class PegEntry
     {

@@ -1,6 +1,6 @@
 ﻿
 
-namespace TextureEditor
+namespace TextureEditor.Peg
 {
     public enum PegFormat
     {

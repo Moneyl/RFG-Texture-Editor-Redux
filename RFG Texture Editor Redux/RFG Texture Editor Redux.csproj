@@ -59,6 +59,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Peg\Util.cs" />
     <Compile Include="Squish.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -74,9 +75,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PegEntry.cs" />
-    <Compile Include="PegFile.cs" />
-    <Compile Include="PegFormat.cs" />
+    <Compile Include="Peg\PegEntry.cs" />
+    <Compile Include="Peg\PegFile.cs" />
+    <Compile Include="Peg\PegFormat.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
