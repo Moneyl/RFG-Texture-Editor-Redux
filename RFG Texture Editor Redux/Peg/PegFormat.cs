@@ -2,7 +2,7 @@
 
 namespace TextureEditor.Peg
 {
-    public enum PegFormat
+    public enum PegFormat : ushort
     {
         None = 0,
         BM_1555 = 1,

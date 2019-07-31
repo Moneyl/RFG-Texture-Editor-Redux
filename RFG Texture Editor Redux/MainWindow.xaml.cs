@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -74,6 +75,7 @@ namespace TextureEditor
                 UpdateWindowTitle();
                 PopulateTreeView();
                 SetSelectedTexture(0);
+                UpdateInfoPanel();
             }
         }
 
@@ -113,6 +115,7 @@ namespace TextureEditor
                     }
 
                     UpdateCurrentTextureBitmap();
+                    UpdateInfoPanel();
                 }
             }
         }
@@ -190,12 +193,12 @@ namespace TextureEditor
         {
             TextureTree.Items.Clear();
             
+            var rootNode = new TreeViewItem {Header = "Textures", IsExpanded = true};
+            TextureTree.Items.Add(rootNode);
+
             foreach (var entry in _peg.Entries)
             {
-                TextureTree.Items.Add(new TreeViewItem()
-                {
-                    Header = entry.Name
-                });
+                rootNode.Items.Add(new TreeViewItem {Header = entry.Name});
             }
         }
 
@@ -219,6 +222,72 @@ namespace TextureEditor
         void UpdateCurrentTextureBitmap()
         {
             SetSelectedTexture(GetSelectedTextureIndex());
+        }
+
+        void UpdateInfoPanel()
+        {
+            FileInfoTree.Items.Clear();
+            
+            var pegInfoNode = new TreeViewItem {Header = "Peg info", IsExpanded = true};
+            FileInfoTree.Items.Add(pegInfoNode);
+
+            TreeItemAddLabelPair(pegInfoNode, "Name", $"{_peg.cpuFileName}");
+            TreeItemAddLabelPair(pegInfoNode, "Version:", $"{_peg.Version}");
+            TreeItemAddLabelPair(pegInfoNode, "Platform:", $"{_peg.Platform}");
+            TreeItemAddLabelPair(pegInfoNode, "Cpeg size:", $"{_peg.DirectoryBlockSize} bytes");
+            TreeItemAddLabelPair(pegInfoNode, "Gpeg size:", $"{_peg.DataBlockSize} bytes");
+            TreeItemAddLabelPair(pegInfoNode, "Number of bitmaps:", $"{_peg.NumberOfBitmaps}");
+            TreeItemAddLabelPair(pegInfoNode, "Flags:", $"{_peg.Flags}");
+            TreeItemAddLabelPair(pegInfoNode, "Total entries:", $"{_peg.TotalEntries}");
+            TreeItemAddLabelPair(pegInfoNode, "Align value:", $"{_peg.AlignValue}");
+
+            var texturesInfoNode = new TreeViewItem {Header = "Texture info", IsExpanded = true};
+            FileInfoTree.Items.Add(texturesInfoNode);
+            if (_peg != null)
+            {
+                foreach (var entry in _peg.Entries)
+                {
+                    var textureNode = new TreeViewItem {Header = entry.Name, IsExpanded = true};
+                    texturesInfoNode.Items.Add(textureNode);
+
+                    TreeItemAddLabelPair(textureNode, "Width:", $"{entry.width}");
+                    TreeItemAddLabelPair(textureNode, "Height:", $"{entry.height}");
+                    TreeItemAddLabelPair(textureNode, "Format:", $"{entry.bitmap_format}");
+
+                    var advancedValuesNode = new TreeViewItem {Header = "Advanced values"};
+                    textureNode.Items.Add(advancedValuesNode);
+
+                    TreeItemAddLabelPair(advancedValuesNode, "Data offset:", $"{entry.data} bytes");
+                    TreeItemAddLabelPair(advancedValuesNode, "Width:", $"{entry.width}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Height:", $"{entry.height}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Format:", $"{entry.bitmap_format}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Source width:", $"{entry.source_width}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Anim tiles width:", $"{entry.anim_tiles_width}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Anim tiles height:", $"{entry.anim_tiles_height}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Number of frames:", $"{entry.num_frames}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Flags:", $"{entry.flags}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Filename:", $"{entry.filename}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Source height:", $"{entry.source_height}");
+                    TreeItemAddLabelPair(advancedValuesNode, "FPS:", $"{entry.fps}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Mip levels:", $"{entry.mip_levels}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Frame size:", $"{entry.frame_size} bytes");
+                    TreeItemAddLabelPair(advancedValuesNode, "Next:", $"{entry.next}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Previous:", $"{entry.previous}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Cache 0:", $"{entry.cache0}");
+                    TreeItemAddLabelPair(advancedValuesNode, "Cache 1:", $"{entry.cache1}");
+                }
+            }
+        }
+
+        void TreeItemAddLabelPair(TreeViewItem node, string label, string value)
+        {
+            var wrapPanel = new WrapPanel {Margin = new Thickness(-20.0, 0.0, 0.0, 0.0)};
+            var nodeLabel = new Label {Content = label, FontWeight = FontWeights.Bold};
+            var valueLabel = new Label {Content = value};
+
+            wrapPanel.Children.Add(nodeLabel);
+            wrapPanel.Children.Add(valueLabel);
+            node.Items.Add(wrapPanel);
         }
     }
 }

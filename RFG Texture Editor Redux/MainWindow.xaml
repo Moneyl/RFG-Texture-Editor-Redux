@@ -36,11 +36,10 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TreeView Name="TextureTree" Grid.Column="0" Width="220" SelectedItemChanged="TextureTree_OnSelectedItemChanged">
-
-                </TreeView>
+                <TreeView Name="TextureTree" Grid.Column="0" Width="220" Height="Auto" SelectedItemChanged="TextureTree_OnSelectedItemChanged" BorderBrush="White"/>
 
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
                     <Border Name="ImageViewBorder">
@@ -50,6 +49,10 @@
                         <Image Name="TextureView" Stretch="Uniform"/>
                     </Border>
                 </ScrollViewer>
+
+                <TreeView Name="FileInfoTree" Grid.Column="2" Width="220" BorderBrush="White">
+                </TreeView>
+
             </Grid>
         </DockPanel>
     </Grid>
