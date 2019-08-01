@@ -283,7 +283,7 @@ namespace TextureEditor
         {
             var wrapPanel = new WrapPanel {Margin = new Thickness(-20.0, 0.0, 0.0, 0.0)};
             var nodeLabel = new Label {Content = label, FontWeight = FontWeights.Bold};
-            var valueLabel = new Label {Content = value};
+            var valueLabel = new Label {Content = new TextBlock {Text = value}};
 
             wrapPanel.Children.Add(nodeLabel);
             wrapPanel.Children.Add(valueLabel);
