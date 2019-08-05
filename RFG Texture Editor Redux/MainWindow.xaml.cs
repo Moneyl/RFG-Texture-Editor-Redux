@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -192,13 +192,10 @@ namespace TextureEditor
         private void PopulateTreeView()
         {
             TextureTree.Items.Clear();
-            
-            var rootNode = new TreeViewItem {Header = "Textures", IsExpanded = true};
-            TextureTree.Items.Add(rootNode);
 
             foreach (var entry in _peg.Entries)
             {
-                rootNode.Items.Add(new TreeViewItem {Header = entry.Name});
+                TextureTree.Items.Add(new TreeViewItem {Header = entry.Name});
             }
         }
 
