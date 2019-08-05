@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -281,7 +281,7 @@ namespace TextureEditor
 
         void TreeItemAddLabelPair(TreeViewItem node, string label, string value)
         {
-            var wrapPanel = new WrapPanel {Margin = new Thickness(-20.0, 0.0, 0.0, 0.0)};
+            var wrapPanel = new WrapPanel {Margin = new Thickness(-20.0, -7.0, 0.0, 0.0)};
             var nodeLabel = new Label {Content = label, FontWeight = FontWeights.Bold};
             var valueLabel = new Label {Content = new TextBlock {Text = value}};
 
