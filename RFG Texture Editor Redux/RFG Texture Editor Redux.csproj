@@ -63,6 +63,7 @@
     </ApplicationDefinition>
     <Compile Include="Peg\Util.cs" />
     <Compile Include="Squish.cs" />
+    <Compile Include="Utility\BinaryHelpers.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -116,5 +117,6 @@
     </Content>
     <Resource Include="Images\Checker.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
