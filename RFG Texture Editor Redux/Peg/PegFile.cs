@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Odbc;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using TextureEditor.Utility;
 
 //struct peg_entry::peg_flag_and_size_union
 //{
@@ -89,7 +84,6 @@ namespace TextureEditor.Peg
                 {
                     Entries.Clear();
                     var header = new BinaryReader(cpuFileStream);
-                    var data = new BinaryReader(gpuFileStream);
 
                     Signature = header.ReadUInt32();
                     if (Signature != 1447773511) //Equals GEKV as a string
@@ -128,21 +122,70 @@ namespace TextureEditor.Peg
                     {
                         entry.Name = Util.ReadNullTerminatedString(header);
                     }
-
-
-                    //Load raw texture data from gpu file, convert to bitmaps for easy handling
-                    foreach (var entry in Entries)
-                    {
-                        entry.RawData = new byte[entry.frame_size];
-                        data.Read(entry.RawData, 0, (int)entry.frame_size);
-                        entry.Bitmap = Util.EntryDataToBitmap(entry);
-                    }
                 }
             }
         }
 
+        public Bitmap GetEntryBitmap(PegEntry entry)
+        {
+            return GetEntryBitmap(Entries.IndexOf(entry));
+        }
+
+        public Bitmap GetEntryBitmap(int entryIndex)
+        {
+            if (entryIndex >= Entries.Count)
+                return null;
+
+            var entry = Entries[entryIndex];
+            if (entry.Edited)
+            {
+                return entry.Bitmap;
+            }
+            else
+            {
+                var gpuFileStream = new FileStream(_gpuFilePath, FileMode.Open);
+                var rawData = new byte[entry.frame_size];
+
+                gpuFileStream.Skip(entry.data);
+                gpuFileStream.Read(rawData, 0, (int) entry.frame_size);
+                var bitmap = Util.RawDataToBitmap(rawData, entry.bitmap_format, entry.width, entry.height);
+                gpuFileStream.Dispose();
+
+                return bitmap;
+            }
+        }
+
+        public byte[] GetEntryRawData(PegEntry entry)
+        {
+            return GetEntryRawData(Entries.IndexOf(entry));
+        }
+
+        public byte[] GetEntryRawData(int entryIndex)
+        {
+            if (entryIndex >= Entries.Count)
+                return null;
+
+            var entry = Entries[entryIndex];
+            var gpuFileStream = new FileStream(_gpuFilePath, FileMode.Open);
+
+            var rawData = new byte[entry.frame_size];
+            gpuFileStream.Skip(entry.data);
+            gpuFileStream.Read(rawData, 0, (int)entry.frame_size);
+            gpuFileStream.Dispose();
+            return rawData;
+        }
+
         public void Write()
         {
+            //Get raw data of entries ahead of time. This is a lame way to handle this imo but due to the design of GetEntryRawData necessary
+            //to avoid multiple streams trying to read the gpu file at once. The goal of this is to keep memory usage low and never
+            //cache big images for long, but the execution could be better.
+            var rawDatas = new List<byte[]>();
+            foreach (var entry in Entries)
+            {
+                rawDatas.Add(GetEntryRawData(entry));
+            }
+
             using (var cpuFileStream = new FileStream(_cpuFilePath, FileMode.Truncate))
             {
                 using (var gpuFileStream = new FileStream(_gpuFilePath, FileMode.Truncate))
@@ -150,7 +193,7 @@ namespace TextureEditor.Peg
                     var cpuFile = new BinaryWriter(cpuFileStream);
                     var gpuFile = new BinaryWriter(gpuFileStream);
 
-                    WriteEntryData(gpuFile); //Write entry data to gpu file first so that entry size can be counted.
+                    WriteEntryData(gpuFile, rawDatas); //Write entry data to gpu file first so that entry size can be counted.
                     WriteHeader(cpuFile);
                     WriteEntries(cpuFile);
                     WriteEntryNames(cpuFile);
@@ -193,30 +236,46 @@ namespace TextureEditor.Peg
             }
         }
 
-        private void WriteEntryData(BinaryWriter gpuFile)
+        private void WriteEntryData(BinaryWriter gpuFile, List<byte[]> rawDatas)
         {
+            int index = 0;
+            uint offset = 0;
             foreach (var entry in Entries)
             {
+                var rawData = rawDatas[index];
+                if (entry.bitmap_format == PegFormat.PC_8888)
+                {
+                    //rawData = Util.RgbaToBgra(rawData);
+                    throw new Exception($"Entry {index}, \"{entry.Name}\", has the format PC_8888. " 
+                                        + $"Saving for this pixel format isn't supported yet, just viewing & extracting.");
+                }
+
                 if (entry.Edited)
                 {
                     if (entry.bitmap_format == PegFormat.PC_DXT1)
                     {
-                        var compressBuffer = Squish.Compress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT1);
+                        var compressBuffer = Squish.Compress(rawData, entry.width, entry.height, Squish.Flags.DXT1);
                         gpuFile.Write(compressBuffer);
                         entry.frame_size = (uint)compressBuffer.Length;
                     }
                     else if (entry.bitmap_format == PegFormat.PC_DXT3)
                     {
-                        var compressBuffer = Squish.Compress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT3);
+                        var compressBuffer = Squish.Compress(rawData, entry.width, entry.height, Squish.Flags.DXT3);
                         gpuFile.Write(compressBuffer);
                         entry.frame_size = (uint)compressBuffer.Length;
                     }
                     else if (entry.bitmap_format == PegFormat.PC_DXT5)
                     {
-                        var compressBuffer = Squish.Compress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT5);
+                        var compressBuffer = Squish.Compress(rawData, entry.width, entry.height, Squish.Flags.DXT5);
                         gpuFile.Write(compressBuffer);
                         entry.frame_size = (uint)compressBuffer.Length;
                     }
+                    //else if (entry.bitmap_format == PegFormat.PC_8888)
+                    //{
+                    //    //gpuFile.Write(rawData);
+                    //    //entry.frame_size = (uint)rawData.Length;
+                    //    //throw new Exception($"Entry {index}, \"{entry.Name}\", has the format PC_8888. Saving for this pixel format isn't supported yet, just viewing.");
+                    //}
                     else
                     {
                         throw new Exception($"Unsupported PEG data format detected! {entry.bitmap_format.ToString()} is not yet supported.");
@@ -224,9 +283,15 @@ namespace TextureEditor.Peg
                 }
                 else
                 {
-                    gpuFile.Write(entry.RawData);
-                    entry.frame_size = (uint)entry.RawData.Length;
+                    gpuFile.Write(rawData);
+                    entry.frame_size = (uint)rawData.Length;
+                    entry.data = offset;
                 }
+                //Align to alignment value
+                gpuFile.Align(AlignValue);
+                //Update offset to start of next entry
+                offset = (uint)gpuFile.BaseStream.Position;
+                index++;
             }
         }
     }

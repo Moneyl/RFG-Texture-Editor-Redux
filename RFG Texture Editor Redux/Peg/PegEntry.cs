@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
 namespace TextureEditor.Peg
 {
@@ -32,6 +26,8 @@ namespace TextureEditor.Peg
 
         //Note: This is stored separately from the other entry data. Placed in this class for coding convenience.
         public string Name;
+
+        //Note: Only use these two if Edited == true
         //This is the raw/unconverted data. Used an edited texture wasn't imported, to avoid two conversions
         public byte[] RawData;
         //This is stored in the gpu file (gpeg_pc or gvbm_pc) and converted to a bitmap for easy use with the editor.

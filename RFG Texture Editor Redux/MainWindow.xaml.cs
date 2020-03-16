@@ -1,24 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using TextureEditor.Peg;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace TextureEditor
 {
@@ -81,8 +70,15 @@ namespace TextureEditor
 
         private void SaveChanges_OnClick(object sender, RoutedEventArgs e)
         {
-            _peg.Write();
-            MessageBox.Show($"Saved changes to:\n{_peg.cpuFileName}, and\n{_peg.gpuFileName}");
+            try
+            {
+                _peg.Write();
+                MessageBox.Show($"Saved changes to:\n{_peg.cpuFileName}, and\n{_peg.gpuFileName}");
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show($"Exception caught while saving texture! Message: \"{exception.Message}\"");
+            }
         }
 
         private void ImportSelectedTexture_OnClick(object sender, RoutedEventArgs e)
@@ -122,27 +118,30 @@ namespace TextureEditor
 
         private void ExtractSelectedTexture_OnClick(object sender, RoutedEventArgs e)
         {
-            if (_peg != null && _peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
+            int selectedIndex = GetSelectedTextureIndex();
+            if (_peg != null && _peg.Entries.Count > 0 && selectedIndex > -1)
             {
                 _fileBrowser.IsFolderPicker = true;
                 if (_fileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    var selectedEntry = _peg.Entries[GetSelectedTextureIndex()];
-                    selectedEntry.Bitmap.Save(_fileBrowser.FileName + "\\" + Path.GetFileNameWithoutExtension(selectedEntry.Name) + ".png", ImageFormat.Png);
+                    var selectedEntry = _peg.Entries[selectedIndex];
+                    var bitmap = _peg.GetEntryBitmap(selectedEntry);
+                    bitmap.Save($"{_fileBrowser.FileName}\\{Path.GetFileNameWithoutExtension(selectedEntry.Name)}.png", ImageFormat.Png);
                 }
             }
         }
 
         private void ExtractAllTextures_OnClick(object sender, RoutedEventArgs e)
         {
-            if (_peg != null && _peg.Entries.Count > 0 && GetSelectedTextureIndex() > -1)
+            if (_peg != null && _peg.Entries.Count > 0)
             {
                 _fileBrowser.IsFolderPicker = true;
                 if (_fileBrowser.ShowDialog() == CommonFileDialogResult.Ok)
                 {
                     foreach (var entry in _peg.Entries)
                     {
-                        entry.Bitmap.Save(_fileBrowser.FileName + "\\" + Path.GetFileNameWithoutExtension(entry.Name) + ".png", ImageFormat.Png);
+                        var bitmap = _peg.GetEntryBitmap(entry);
+                        bitmap.Save($"{_fileBrowser.FileName}\\{Path.GetFileNameWithoutExtension(entry.Name)}.png", ImageFormat.Png);
                     }
                 }
             }
@@ -205,7 +204,8 @@ namespace TextureEditor
             {
                 if (index < _peg.Entries.Count && index > -1)
                 {
-                    TextureView.Source = Util.BitmapToBitmapImage(_peg.Entries[index].Bitmap);
+                    var bitmap = _peg.GetEntryBitmap(index);
+                    TextureView.Source = Util.BitmapToBitmapImage(bitmap);
                     ((TreeViewItem)TextureTree.Items[index]).IsSelected = true;
                 }
             }

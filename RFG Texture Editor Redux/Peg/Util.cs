@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace TextureEditor.Peg
@@ -26,27 +23,57 @@ namespace TextureEditor.Peg
             return String.ToString();
         }
 
-        public static Bitmap EntryDataToBitmap(PegEntry entry)
+        //public static Bitmap EntryDataToBitmap(PegEntry entry)
+        //{
+        //    return RawDataToBitmap(entry.RawData, entry.bitmap_format, entry.width, entry.height);
+        //}
+
+        public static Bitmap RawDataToBitmap(byte[] rawData, PegFormat format, ushort width, ushort height)
         {
-            if (entry.bitmap_format == PegFormat.PC_DXT1)
+            if (format == PegFormat.PC_DXT1)
             {
-                var decompressBuffer = Squish.Decompress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT1);
-                return MakeBitmapFromDXT(entry.width, entry.height, decompressBuffer, true);
+                var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT1);
+                return MakeBitmapFromDXT(width, height, decompressBuffer, true);
             }
-            else if (entry.bitmap_format == PegFormat.PC_DXT3)
+            else if (format == PegFormat.PC_DXT3)
             {
-                var decompressBuffer = Squish.Decompress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT3);
-                return MakeBitmapFromDXT(entry.width, entry.height, decompressBuffer, true);
+                var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT3);
+                return MakeBitmapFromDXT(width, height, decompressBuffer, true);
             }
-            else if (entry.bitmap_format == PegFormat.PC_DXT5)
+            else if (format == PegFormat.PC_DXT5)
             {
-                var decompressBuffer = Squish.Decompress(entry.RawData, entry.width, entry.height, Squish.Flags.DXT5);
-                return MakeBitmapFromDXT(entry.width, entry.height, decompressBuffer, true);
+                var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT5);
+                return MakeBitmapFromDXT(width, height, decompressBuffer, true);
+            }
+            else if (format == PegFormat.PC_8888)
+            {
+                return MakeBitmapFromPc8888(width, height, rawData);
             }
             else
             {
-                throw new Exception($"Unsupported PEG data format detected! {entry.bitmap_format.ToString()} is not yet supported.");
+                throw new Exception($"Unsupported PEG data format detected! {format.ToString()} is not yet supported.");
             }
+        }
+
+        public static Bitmap MakeBitmapFromPc8888(uint width, uint height, byte[] buffer)
+        {
+            Bitmap bitmap = new Bitmap((int)width, (int)height, PixelFormat.Format32bppArgb);
+            int pos = 0;
+            for (int y = 0; y < width; y++)
+            {
+                for (int x = 0; x < height; x++)
+                {
+                    //Assuming each pixel is a bgra color with one byte per component
+                    var color = new Color();
+                    int b = buffer[pos];
+                    int g = buffer[pos + 1];
+                    int r = buffer[pos + 2];
+                    int a = buffer[pos + 3];
+                    bitmap.SetPixel(x, y, Color.FromArgb(a, r, g, b));
+                    pos += 4;
+                }
+            }
+            return bitmap;
         }
 
         public static Bitmap MakeBitmapFromDXT(uint width, uint height, byte[] buffer, bool keepAlpha)
@@ -75,6 +102,29 @@ namespace TextureEditor.Peg
             image.StreamSource = ms;
             image.EndInit();
             return image;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rgbaData">A byte array of rgba color data. 1 byte per color component</param>
+        /// <returns>A byte array of bgra color data. 1 byte per color component</returns>
+        public static byte[] RgbaToBgra(byte[] rgbaData)
+        {
+            var bgraData = new byte[rgbaData.Length];
+            for (int i = 0; i < rgbaData.Length; i += 4)
+            {
+                byte r = rgbaData[i];
+                byte g = rgbaData[i + 1];
+                byte b = rgbaData[i + 2];
+                byte a = rgbaData[i + 3];
+
+                bgraData[i] = b;
+                bgraData[i + 1] = g;
+                bgraData[i + 2] = r;
+                bgraData[i + 3] = a;
+            }
+            return bgraData;
         }
 
         public static byte[] ConvertBitmapToByteArray(Bitmap bitmap)
