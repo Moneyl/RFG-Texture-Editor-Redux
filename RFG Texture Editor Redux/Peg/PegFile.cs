@@ -267,12 +267,14 @@ namespace TextureEditor.Peg
                         var compressBuffer = Squish.Compress(rawData, entry.width, entry.height, Squish.Flags.DXT3);
                         gpuFile.Write(compressBuffer);
                         entry.frame_size = (uint)compressBuffer.Length;
+                        entry.data = offset;
                     }
                     else if (entry.bitmap_format == PegFormat.PC_DXT5)
                     {
                         var compressBuffer = Squish.Compress(rawData, entry.width, entry.height, Squish.Flags.DXT5);
                         gpuFile.Write(compressBuffer);
                         entry.frame_size = (uint)compressBuffer.Length;
+                        entry.data = offset;
                     }
                     //else if (entry.bitmap_format == PegFormat.PC_8888)
                     //{
@@ -291,6 +293,9 @@ namespace TextureEditor.Peg
                     entry.frame_size = (uint)rawData.Length;
                     entry.data = offset;
                 }
+                //Todo: Add support for other mip levels
+                entry.mip_levels = 1;
+
                 //Align to alignment value
                 gpuFile.Align(AlignValue);
                 //Update offset to start of next entry
