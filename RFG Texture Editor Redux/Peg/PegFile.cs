@@ -166,6 +166,9 @@ namespace TextureEditor.Peg
                 return null;
 
             var entry = Entries[entryIndex];
+            if(entry.RawData != null)
+                return entry.RawData;
+
             var gpuFileStream = new FileStream(_gpuFilePath, FileMode.Open);
 
             var rawData = new byte[entry.frame_size];
@@ -257,6 +260,7 @@ namespace TextureEditor.Peg
                         var compressBuffer = Squish.Compress(rawData, entry.width, entry.height, Squish.Flags.DXT1);
                         gpuFile.Write(compressBuffer);
                         entry.frame_size = (uint)compressBuffer.Length;
+                        entry.data = offset;
                     }
                     else if (entry.bitmap_format == PegFormat.PC_DXT3)
                     {
