@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Media.Imaging;
+using TextureEditor.Utility;
 
 namespace TextureEditor.Peg
 {
@@ -32,17 +33,102 @@ namespace TextureEditor.Peg
         {
             if (format == PegFormat.PC_DXT1)
             {
-                var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT1);
+                var rawDataLE = new byte[rawData.Length];
+                for(int i = 0; i < rawDataLE.Length; i+=8)
+                {
+                    //var tempArray = new byte[8];
+                    //tempArray[0] = rawDataLE[i + 0];
+                    //tempArray[1] = rawDataLE[i + 1];
+                    //tempArray[2] = rawDataLE[i + 2];
+                    //tempArray[3] = rawDataLE[i + 3];
+                    //tempArray[4] = rawDataLE[i + 4];
+                    //tempArray[5] = rawDataLE[i + 5];
+                    //tempArray[6] = rawDataLE[i + 6];
+                    //tempArray[7] = rawDataLE[i + 7];
+
+                    //tempArray = tempArray.Reverse();
+                    //rawDataLE[i + 0] = tempArray[0];
+                    //rawDataLE[i + 1] = tempArray[1];
+                    //rawDataLE[i + 2] = tempArray[2];
+                    //rawDataLE[i + 3] = tempArray[3];
+                    //rawDataLE[i + 4] = tempArray[4];
+                    //rawDataLE[i + 5] = tempArray[5];
+                    //rawDataLE[i + 6] = tempArray[6];
+                    //rawDataLE[i + 7] = tempArray[7];
+
+                    var tempArray = new byte[4];
+                    var tempArray2 = new byte[4];
+                    tempArray[0] = rawDataLE[i + 0];
+                    tempArray[1] = rawDataLE[i + 1];
+                    tempArray[2] = rawDataLE[i + 2];
+                    tempArray[3] = rawDataLE[i + 3];
+
+                    tempArray2[0] = rawDataLE[i + 0];
+                    tempArray2[1] = rawDataLE[i + 1];
+                    tempArray2[2] = rawDataLE[i + 2];
+                    tempArray2[3] = rawDataLE[i + 3];
+
+                    tempArray = tempArray.Reverse();
+                    tempArray2 = tempArray2.Reverse();
+
+                    rawDataLE[i + 0] = tempArray[0];
+                    rawDataLE[i + 1] = tempArray[1];
+                    rawDataLE[i + 2] = tempArray[2];
+                    rawDataLE[i + 3] = tempArray[3];
+
+                    rawDataLE[i + 4] = tempArray2[0];
+                    rawDataLE[i + 5] = tempArray2[1];
+                    rawDataLE[i + 6] = tempArray2[2];
+                    rawDataLE[i + 7] = tempArray2[3];
+                }
+                var decompressBuffer = Squish.Decompress(rawDataLE, width, height, Squish.Flags.DXT1);
+                
+                //var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT1);
+                
                 return MakeBitmapFromDXT(width, height, decompressBuffer, true);
             }
             else if (format == PegFormat.PC_DXT3)
             {
-                var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT3);
+                var rawDataLE = new byte[rawData.Length];
+                for (int i = 0; i < rawDataLE.Length; i += 4)
+                {
+                    var tempArray = new byte[4];
+                    tempArray[0] = rawDataLE[i + 0];
+                    tempArray[1] = rawDataLE[i + 1];
+                    tempArray[2] = rawDataLE[i + 2];
+                    tempArray[3] = rawDataLE[i + 3];
+
+                    tempArray = tempArray.Reverse();
+                    rawDataLE[i + 0] = tempArray[0];
+                    rawDataLE[i + 1] = tempArray[1];
+                    rawDataLE[i + 2] = tempArray[2];
+                    rawDataLE[i + 3] = tempArray[3];
+                }
+                var decompressBuffer = Squish.Decompress(rawDataLE, width, height, Squish.Flags.DXT3);
+                
+                //var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT3);
                 return MakeBitmapFromDXT(width, height, decompressBuffer, true);
             }
             else if (format == PegFormat.PC_DXT5)
             {
-                var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT5);
+                var rawDataLE = new byte[rawData.Length];
+                for (int i = 0; i < rawDataLE.Length; i += 4)
+                {
+                    var tempArray = new byte[4];
+                    tempArray[0] = rawDataLE[i + 0];
+                    tempArray[1] = rawDataLE[i + 1];
+                    tempArray[2] = rawDataLE[i + 2];
+                    tempArray[3] = rawDataLE[i + 3];
+
+                    tempArray = tempArray.Reverse();
+                    rawDataLE[i + 0] = tempArray[0];
+                    rawDataLE[i + 1] = tempArray[1];
+                    rawDataLE[i + 2] = tempArray[2];
+                    rawDataLE[i + 3] = tempArray[3];
+                }
+                var decompressBuffer = Squish.Decompress(rawDataLE, width, height, Squish.Flags.DXT5);
+
+                //var decompressBuffer = Squish.Decompress(rawData, width, height, Squish.Flags.DXT5);
                 return MakeBitmapFromDXT(width, height, decompressBuffer, true);
             }
             else if (format == PegFormat.PC_8888)

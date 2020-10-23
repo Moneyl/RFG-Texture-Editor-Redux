@@ -85,29 +85,29 @@ namespace TextureEditor.Peg
                     Entries.Clear();
                     var header = new BinaryReader(cpuFileStream);
 
-                    Signature = header.ReadUInt32();
-                    if (Signature != 1447773511) //Equals GEKV as a string
+                    Signature = header.ReadUInt32BE();
+                    if (Signature != 1447773511 && Signature != 1195723606) //Equals GEKV as a string
                     {
                         throw new Exception("Header signature must be GEKV. Invalid peg file. Make sure that your packfile extractor didn't incorrectly extract the peg file you're trying to open.");
                     }
-                    Version = header.ReadUInt16();
+                    Version = header.ReadUInt16BE();
                     if (Version != 10)
                     {
                         throw new Exception($"Unsupported peg format version detected! Only peg version 10 is supported. Version {Version} was detected");
                     }
 
-                    Platform = header.ReadUInt16(); //Todo: Add exception or warning for unknown or unsupported platform.
-                    DirectoryBlockSize = header.ReadUInt32();
+                    Platform = header.ReadUInt16BE(); //Todo: Add exception or warning for unknown or unsupported platform.
+                    DirectoryBlockSize = header.ReadUInt32BE();
                     if (header.BaseStream.Length != DirectoryBlockSize)
                     {
                         throw new Exception($"Error, the size of the header file (cpeg_pc or cvbm_pc) does not match the size value stored in the header! Actual size: {header.BaseStream.Length} bytes, stored size: {DirectoryBlockSize} bytes.");
                     }
 
-                    DataBlockSize = header.ReadUInt32();
-                    NumberOfBitmaps = header.ReadUInt16();
-                    Flags = header.ReadUInt16();
-                    TotalEntries = header.ReadUInt16();
-                    AlignValue = header.ReadUInt16();
+                    DataBlockSize = header.ReadUInt32BE();
+                    NumberOfBitmaps = header.ReadUInt16BE();
+                    Flags = header.ReadUInt16BE();
+                    TotalEntries = header.ReadUInt16BE();
+                    AlignValue = header.ReadUInt16BE();
 
                     //Read peg entries
                     for (int i = 0; i < NumberOfBitmaps; i++)
@@ -148,6 +148,7 @@ namespace TextureEditor.Peg
 
                 gpuFileStream.Skip(entry.data);
                 gpuFileStream.Read(rawData, 0, (int) entry.frame_size);
+                //rawData = rawData.Reverse();
                 var bitmap = Util.RawDataToBitmap(rawData, entry.bitmap_format, entry.width, entry.height);
                 gpuFileStream.Dispose();
 

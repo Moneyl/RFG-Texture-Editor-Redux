@@ -25,7 +25,7 @@ namespace TextureEditor
             InitializeComponent();
 
             _fileBrowser = new CommonOpenFileDialog();
-            _fileBrowser.Filters.Add(new CommonFileDialogFilter("Peg files", "*.cpeg_pc;*.cvbm_pc"));
+            _fileBrowser.Filters.Add(new CommonFileDialogFilter());
 
             _importFileBrowser = new CommonOpenFileDialog();
             _importFileBrowser.Filters.Add(new CommonFileDialogFilter("Image file", "*.png")); //Todo: Test and support more formats
@@ -53,6 +53,18 @@ namespace TextureEditor
                 else if(cpuFileInfo.Extension == ".cvbm_pc")
                 {
                     var gpuFileInfo = new FileInfo(cpuFileInfo.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(cpuFilePath) + ".gvbm_pc");
+                    _peg = new PegFile(cpuFilePath, gpuFileInfo.FullName);
+                    _peg.Read();
+                }
+                else if(cpuFileInfo.Extension == ".cvbm_xbox2")
+                {
+                    var gpuFileInfo = new FileInfo(cpuFileInfo.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(cpuFilePath) + ".gvbm_xbox2");
+                    _peg = new PegFile(cpuFilePath, gpuFileInfo.FullName);
+                    _peg.Read();
+                }
+                else if (cpuFileInfo.Extension == ".cpeg_xbox2")
+                {
+                    var gpuFileInfo = new FileInfo(cpuFileInfo.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(cpuFilePath) + ".gpeg_xbox2");
                     _peg = new PegFile(cpuFilePath, gpuFileInfo.FullName);
                     _peg.Read();
                 }

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.IO;
+using TextureEditor.Utility;
 
 namespace TextureEditor.Peg
 {
@@ -37,24 +38,24 @@ namespace TextureEditor.Peg
 
         public void Read(BinaryReader header)
         {
-            data = header.ReadUInt32();
-            width = header.ReadUInt16();
-            height = header.ReadUInt16();
-            bitmap_format = (PegFormat)header.ReadUInt16();
-            source_width = header.ReadUInt16();
-            anim_tiles_width = header.ReadUInt16();
-            anim_tiles_height = header.ReadUInt16();
-            num_frames = header.ReadUInt16();
-            flags = header.ReadUInt16();
-            filename = header.ReadUInt32();
-            source_height = header.ReadUInt16();
+            data = header.ReadUInt32BE();
+            width = header.ReadUInt16BE();
+            height = header.ReadUInt16BE();
+            bitmap_format = (PegFormat)header.ReadUInt16BE();
+            source_width = header.ReadUInt16BE();
+            anim_tiles_width = header.ReadUInt16BE();
+            anim_tiles_height = header.ReadUInt16BE();
+            num_frames = header.ReadUInt16BE();
+            flags = header.ReadUInt16BE();
+            filename = header.ReadUInt32BE();
+            source_height = header.ReadUInt16BE();
             fps = header.ReadByte();
             mip_levels = header.ReadByte();
-            frame_size = header.ReadUInt32();
-            next = header.ReadUInt32();
-            previous = header.ReadUInt32();
-            cache0 = header.ReadUInt32();
-            cache1 = header.ReadUInt32();
+            frame_size = header.ReadUInt32BE();
+            next = header.ReadUInt32BE();
+            previous = header.ReadUInt32BE();
+            cache0 = header.ReadUInt32BE();
+            cache1 = header.ReadUInt32BE();
         }
 
         public void Write(BinaryWriter header)
